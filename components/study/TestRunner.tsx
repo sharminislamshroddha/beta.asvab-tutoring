@@ -20,6 +20,8 @@ type Props = {
   footerExtra?: (question: TestQuestion) => ReactNode;
   /** Unanswered questions across the whole test (multi-section tests) */
   unansweredOverall?: (answeredHere: number) => number;
+  /** Multi-section tests: the last question moves on instead of submitting */
+  nextSection?: { label: string; onGo: () => void };
 };
 
 /** Shared runner for practice and prediction tests. */
@@ -33,6 +35,7 @@ export default function TestRunner({
   header,
   footerExtra,
   unansweredOverall,
+  nextSection,
 }: Props) {
   const [index, setIndex] = useState(() => {
     const firstOpen = questions.findIndex((q) => !q.myAnswer);
@@ -51,6 +54,8 @@ export default function TestRunner({
   const current = questions[index];
   const answered = questions.filter((q) => answers[q.eid]).length;
   const unanswered = unansweredOverall ? unansweredOverall(answered) : questions.length - answered;
+  // With sections left, submitting is offered only once every question is answered
+  const canSubmit = !nextSection || unanswered === 0;
 
   useMathTypeset(questionRef, [current?.eid]);
 
@@ -136,14 +141,16 @@ export default function TestRunner({
             <div className={styles.progressFill} style={{ width: `${percent}%` }} />
           </div>
         </div>
-        <button
-          type="button"
-          className={styles.btnPrimary}
-          onClick={() => (unanswered > 0 ? setConfirmOpen(true) : onSubmit())}
-          disabled={submitting || saving !== null}
-        >
-          {submitting ? "Submitting…" : submitLabel}
-        </button>
+        {canSubmit && (
+          <button
+            type="button"
+            className={styles.btnPrimary}
+            onClick={() => (unanswered > 0 ? setConfirmOpen(true) : onSubmit())}
+            disabled={submitting || saving !== null}
+          >
+            {submitting ? "Submitting…" : submitLabel}
+          </button>
+        )}
       </div>
 
       {timed && expired && (
@@ -183,6 +190,15 @@ export default function TestRunner({
               {index < questions.length - 1 ? (
                 <button type="button" className={styles.btnSecondary} onClick={() => go(index + 1)}>
                   Next <i className="bi bi-arrow-right" aria-hidden="true" />
+                </button>
+              ) : nextSection && !canSubmit ? (
+                <button
+                  type="button"
+                  className={styles.btnSecondary}
+                  onClick={nextSection.onGo}
+                  disabled={saving !== null}
+                >
+                  {nextSection.label} <i className="bi bi-arrow-right" aria-hidden="true" />
                 </button>
               ) : (
                 <button

@@ -163,8 +163,11 @@ export default function PredictionTestClient({ predTestId }: { predTestId: numbe
   const otherSectionsOpen = test.sections
     .filter((s) => s.cat_id !== test.cat_id)
     .reduce((sum, s) => sum + Math.max(0, s.total - s.completed), 0);
+  // Next section that still has open questions: after this one first, then earlier skipped ones
   const sectionIndex = test.sections.findIndex((s) => s.cat_id === test.cat_id);
-  const nextSection = sectionIndex >= 0 ? test.sections[sectionIndex + 1] : undefined;
+  const isOpen = (s: (typeof test.sections)[number]) => s.cat_id !== test.cat_id && s.completed < s.total;
+  const nextSection =
+    test.sections.slice(sectionIndex + 1).find(isOpen) ?? test.sections.slice(0, Math.max(sectionIndex, 0)).find(isOpen);
 
   const sectionTabs = (
     <>
@@ -238,6 +241,11 @@ export default function PredictionTestClient({ predTestId }: { predTestId: numbe
       submitLabel="Submit test"
       header={sectionTabs}
       unansweredOverall={(answeredHere) => otherSectionsOpen + Math.max(0, test.questions.length - answeredHere)}
+      nextSection={
+        nextSection
+          ? { label: `Next section: ${nextSection.shortcode}`, onGo: () => void switchSection(nextSection.cat_id) }
+          : undefined
+      }
     />
   );
 }
