@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import QuestionHtml from "@/components/free-test/QuestionHtml";
 import type { Flashcard } from "@/lib/study-types";
 import styles from "./study.module.css";
@@ -15,83 +15,142 @@ function shuffle<T>(list: T[]): T[] {
   return copy;
 }
 
+/**
+ * Flashcards like the web portal: the card shows the question and
+ * "See answer" reveals the explanation below it.
+ */
 export default function FlashcardDeck({ cards: initial }: { cards: Flashcard[] }) {
   const [cards, setCards] = useState(initial);
   const [index, setIndex] = useState(0);
-  const [flipped, setFlipped] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useMathTypeset(ref, [index, cards]);
+  const [revealed, setRevealed] = useState(false);
+  const [seen, setSeen] = useState<Set<number>>(() => new Set());
+  const cardRef = useRef<HTMLDivElement>(null);
+  const answerRef = useRef<HTMLDivElement>(null);
+
+  useMathTypeset(cardRef, [index, cards, revealed]);
 
   const card = cards[index];
-  const go = (next: number) => {
-    setFlipped(false);
-    setIndex((next + cards.length) % cards.length);
-  };
+
+  const go = useCallback(
+    (next: number) => {
+      if (cards.length === 0) return;
+      setRevealed(false);
+      setIndex((next + cards.length) % cards.length);
+    },
+    [cards.length],
+  );
+
+  const reveal = useCallback(() => {
+    setRevealed((r) => !r);
+    if (card) setSeen((prev) => new Set(prev).add(card.id));
+  }, [card]);
+
+  useEffect(() => {
+    if (revealed) answerRef.current?.focus({ preventScroll: true });
+  }, [revealed]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && ["INPUT", "TEXTAREA", "SELECT", "BUTTON", "A"].includes(target.tagName)) return;
       if (e.key === "ArrowRight") go(index + 1);
       else if (e.key === "ArrowLeft") go(index - 1);
-      else if (e.key === " " && (e.target as HTMLElement)?.tagName !== "BUTTON") {
+      else if (e.key === " " || e.key === "Enter") {
         e.preventDefault();
-        setFlipped((f) => !f);
+        reveal();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  });
+  }, [go, index, reveal]);
 
   if (!card) return null;
 
+  const percent = Math.round(((index + 1) / cards.length) * 100);
+
   return (
-    <div ref={ref} style={{ maxWidth: 760 }}>
-      <div className="d-flex justify-content-between align-items-center mb-2">
-        <span className={styles.muted} aria-live="polite">
-          Card {index + 1} of {cards.length}
-        </span>
+    <div style={{ maxWidth: 820 }}>
+      <div className={styles.testTopbar} style={{ position: "static" }}>
+        <div className={styles.progressWrap}>
+          <div className={styles.progressLabel}>
+            <span aria-live="polite">
+              Card {index + 1} of {cards.length}
+            </span>
+            <span>{seen.size} answers checked</span>
+          </div>
+          <div
+            className={styles.progressBar}
+            role="progressbar"
+            aria-valuenow={index + 1}
+            aria-valuemin={1}
+            aria-valuemax={cards.length}
+            aria-label="Card position"
+          >
+            <div className={styles.progressFill} style={{ width: `${percent}%` }} />
+          </div>
+        </div>
         <button
           type="button"
           className={styles.btnGhost}
-          style={{ padding: "0.4rem 0.8rem", fontSize: "0.85rem" }}
           onClick={() => {
             setCards(shuffle(cards));
             setIndex(0);
-            setFlipped(false);
+            setRevealed(false);
           }}
         >
           <i className="bi bi-shuffle" aria-hidden="true" /> Shuffle
         </button>
       </div>
 
-      <button
-        type="button"
-        className={`${styles.flashcard} ${flipped ? styles.flashcardFlipped : ""}`}
-        onClick={() => setFlipped((f) => !f)}
-        aria-label={flipped ? "Showing answer. Select to show the question." : "Showing question. Select to reveal the answer."}
-      >
-        <span className={styles.flashcardInner}>
-          <span className={styles.flashcardFace} aria-hidden={flipped}>
-            <span className={styles.flashcardHint}>Tap to flip</span>
-            <QuestionHtml html={card.front} />
-          </span>
-          <span className={`${styles.flashcardFace} ${styles.flashcardBack}`} aria-hidden={!flipped}>
-            <span className={styles.flashcardHint}>Answer</span>
-            <QuestionHtml html={card.back || "<p>No explanation for this card.</p>"} />
-          </span>
-        </span>
-      </button>
+      <article className={`${styles.card} ${styles.flashcardCard}`} ref={cardRef} aria-label={`Flashcard ${index + 1}`}>
+        <div className={styles.questionNumber}>Card {index + 1}</div>
+        <div className={styles.flashcardFront}>
+          <QuestionHtml key={`q-${card.id}`} html={card.front} />
+        </div>
 
-      <div className="d-flex justify-content-between mt-3">
-        <button type="button" className={styles.btnGhost} onClick={() => go(index - 1)}>
+        <div className="text-center my-3">
+          <button
+            type="button"
+            className={revealed ? styles.btnGhost : styles.btnPrimary}
+            onClick={reveal}
+            aria-expanded={revealed}
+            aria-controls="flashcard-answer"
+          >
+            <i className={`bi ${revealed ? "bi-eye-slash" : "bi-eye"}`} aria-hidden="true" />
+            {revealed ? "Hide answer" : "See answer"}
+          </button>
+        </div>
+
+        <div
+          id="flashcard-answer"
+          ref={answerRef}
+          tabIndex={-1}
+          className={styles.explanation}
+          hidden={!revealed}
+          style={{ outline: "none" }}
+        >
+          <div className={styles.explanationTitle}>
+            <i className="bi bi-lightbulb" aria-hidden="true" /> Answer
+          </div>
+          {card.back.trim() ? (
+            <QuestionHtml key={`a-${card.id}`} html={card.back} />
+          ) : (
+            <p className="mb-0">There is no explanation for this card.</p>
+          )}
+        </div>
+      </article>
+
+      <div className="d-flex justify-content-between gap-2 mt-3">
+        <button type="button" className={styles.btnGhost} onClick={() => go(index - 1)} disabled={cards.length < 2}>
           <i className="bi bi-arrow-left" aria-hidden="true" /> Previous
         </button>
-        <button type="button" className={styles.btnSecondary} onClick={() => setFlipped((f) => !f)}>
-          <i className="bi bi-arrow-repeat" aria-hidden="true" /> Flip
-        </button>
-        <button type="button" className={styles.btnGhost} onClick={() => go(index + 1)}>
+        <button type="button" className={styles.btnSecondary} onClick={() => go(index + 1)} disabled={cards.length < 2}>
           Next <i className="bi bi-arrow-right" aria-hidden="true" />
         </button>
       </div>
+      <p className={`${styles.muted} small mt-3 d-none d-md-block`}>
+        Tip: press Space to show the answer and ← → to move between cards.
+      </p>
     </div>
   );
 }

@@ -17,7 +17,7 @@ export default async function StudyFlashcardsPage({ params }: { params: Promise<
 
   return (
     <>
-      <StudyPageHeader title={name} subtitle="Read the card, recall the answer, then flip to check." crumbs={crumbs} />
+      <StudyPageHeader title={name} subtitle="Read the card, think of the answer, then select “See answer” to check." crumbs={crumbs} />
       {!cards.ok ? (
         <StudyNotice code={cards.code} message={cards.message} />
       ) : cards.data.length === 0 ? (

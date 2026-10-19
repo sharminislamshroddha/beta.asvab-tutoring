@@ -1197,62 +1197,22 @@ button.option:hover:not(:disabled) {
 
 /* ---------- Flashcards ---------- */
 
-.flashcard {
-  perspective: 1200px;
-  width: 100%;
-  min-height: 280px;
-  border: 0;
-  background: transparent;
-  padding: 0;
-  cursor: pointer;
-  display: block;
-}
-
-.flashcard:focus-visible {
-  outline: 2px solid var(--study-orange);
-  outline-offset: 4px;
-  border-radius: var(--study-radius);
-}
-
-.flashcardInner {
-  position: relative;
-  width: 100%;
-  min-height: 280px;
-  transition: transform 0.45s ease;
-  transform-style: preserve-3d;
-}
-
-.flashcardFlipped .flashcardInner {
-  transform: rotateY(180deg);
-}
-
-.flashcardFace {
-  position: absolute;
-  inset: 0;
-  backface-visibility: hidden;
-  border-radius: var(--study-radius);
-  border: 1px solid var(--study-border);
-  background: #fff;
+.flashcardCard {
+  border-top: 4px solid var(--study-orange);
   padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  overflow: auto;
-  text-align: left;
 }
 
-.flashcardBack {
-  transform: rotateY(180deg);
-  background: #f7fafd;
-  border-left: 4px solid var(--study-orange);
+.flashcardFront {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  min-height: 6rem;
+  overflow-x: auto;
 }
 
-.flashcardHint {
-  position: absolute;
-  top: 0.75rem;
-  right: 1rem;
-  font-size: 0.75rem;
-  color: var(--study-muted);
+.flashcardFront img,
+.explanation img {
+  max-width: 100%;
+  height: auto;
 }
 
 /* ---------- Notices / states ---------- */
@@ -1370,7 +1330,6 @@ button.option:hover:not(:disabled) {
 
 @media (prefers-reduced-motion: reduce) {
   .tile,
-  .flashcardInner,
   .progressFill,
   .skeleton {
     transition: none;
