@@ -1,0 +1,121 @@
+.ctaStack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.promoCard {
+  flex-shrink: 0;
+}
+
+.promoCardBody {
+  padding: 1.25rem 1.25rem 1.35rem;
+  text-align: center;
+  background: linear-gradient(145deg, #fff8f0 0%, #ffe8cc 48%, #ffd9a8 100%);
+}
+
+.promoCardIconWrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-bottom: 0.65rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e58a34 0%, #f0a050 100%);
+  color: #fff;
+  font-size: 1.1rem;
+}
+
+.promoCardEyebrow {
+  margin: 0 0 0.25rem;
+  color: #e58a34;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.promoCardTitle {
+  margin: 0 0 0.5rem;
+  color: #002341;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.promoCardText {
+  margin: 0 0 1rem;
+  color: #495057;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.promoCardGuarantee {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 1.1rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 0.85rem;
+  background: #ff73004e;
+  border: 1px solid rgba(229, 179, 52, 0.183);
+  box-shadow: 0 4px 14px rgba(0, 35, 65, 0.06);
+  text-align: left;
+}
+
+.promoCardGuaranteeScore {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3.1rem;
+  height: 3.1rem;
+  border-radius: 0.7rem;
+  background: linear-gradient(145deg, #002341 0%, #003a6b 100%);
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  box-shadow: 0 4px 12px rgba(0, 35, 65, 0.22);
+}
+
+.promoCardGuaranteeText {
+  margin: 0;
+  color: #3d4a57;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.promoCardBenefits {
+  justify-content: center;
+  gap: 0.6rem 0.65rem;
+  margin-bottom: 1.35rem;
+}
+
+.promoCardBtn {
+  padding: 0.75rem 1rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #002341 0%, #003a6b 100%);
+  color: #fff !important;
+  box-shadow: 0 6px 18px rgba(0, 35, 65, 0.28);
+  border: 1px solid #002341;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+.promoCardBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, #003a6b 0%, #002341 100%);
+  box-shadow: 0 8px 22px rgba(0, 35, 65, 0.34);
+  color: #fff !important;
+}
+
+.promoCardBtn:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+}

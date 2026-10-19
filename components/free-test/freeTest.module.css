@@ -1,0 +1,315 @@
+.optionLabel {
+  cursor: pointer;
+  border-color: #dee2e6;
+  background-color: #fff;
+  box-shadow: none;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.optionLabel:hover {
+  background-color: #fffaf5;
+  border-color: #f0c090;
+  box-shadow: 0 2px 6px rgba(229, 138, 52, 0.1);
+}
+
+.optionLabelSelected {
+  border-color: #e58a34;
+  background-color: #fffaf5;
+  box-shadow: 0 2px 4px rgba(229, 138, 52, 0.1);
+}
+
+.optionLabelSelected:hover {
+  background-color: #fff5eb;
+  border-color: #e58a34;
+  box-shadow: 0 2px 8px rgba(229, 138, 52, 0.16);
+}
+
+.optionRadio {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  border: 2px solid #adb5bd;
+  background-color: #fff;
+  box-shadow: none;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.optionLabel:hover .optionRadio {
+  border-color: #e58a34;
+}
+
+.optionRadioSelected {
+  border-color: #e58a34;
+  background-color: #e58a34;
+  box-shadow: 0 0 0 3px rgba(229, 138, 52, 0.2);
+}
+
+.testRulesCard {
+  background: linear-gradient(135deg, #fffaf5 0%, #fff 48%, #f4f8fb 100%);
+  border: 1px solid #e8edf2;
+  border-left: 4px solid #e58a34;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 18px rgba(0, 35, 65, 0.06);
+  padding: 1.35rem 1.5rem 1.4rem;
+}
+
+.testRulesHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.75rem;
+}
+
+.testRulesIconWrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  background: rgba(229, 138, 52, 0.12);
+  color: #e58a34;
+  font-size: 1.1rem;
+}
+
+.testRulesTitle {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #002341;
+  line-height: 1.3;
+}
+
+.testRulesLead {
+  margin: 0 0 1rem;
+  font-size: 0.98rem;
+  line-height: 1.65;
+  color: #5c6670;
+}
+
+.testRulesList {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.65rem 1.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+@media (min-width: 768px) {
+  .testRulesList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.testRulesList li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: #495057;
+}
+
+.testRulesList li i {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  color: #e58a34;
+  font-size: 0.8rem;
+}
+
+.showAllTestsWrap {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.showAllTestsBtn {
+  color: #002341;
+  border-radius: 30px;
+  box-shadow: 0 2px 10px rgba(0, 35, 65, 0.1);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+.showAllTestsBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 35, 65, 0.14);
+  color: #fff;
+}
+
+.predictionPromoBtn {
+  border: none;
+  border-radius: 999px;
+  color: #002341 !important;
+  background: linear-gradient(135deg, #ffe8b8 0%, #ffc56d 42%, #e58a34 100%);
+  box-shadow: none;
+  transition:
+    transform 0.15s ease,
+    filter 0.15s ease;
+}
+
+.predictionPromoBtn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+  box-shadow: none;
+  color: #002341 !important;
+}
+
+.predictionPromoBtn:focus,
+.predictionPromoBtn:active {
+  border: none;
+  box-shadow: none;
+  outline: none;
+  color: #002341 !important;
+}
+
+/* Keeps inactive (absolute) category panels from extending page scroll height. */
+.categoryPanels {
+  position: relative;
+  overflow: hidden;
+}
+
+.categoryPanelsLoading {
+  visibility: hidden;
+}
+
+.storyPassage img {
+  max-width: 100%;
+  height: auto;
+}
+
+.categoryDescription {
+  border-color: #dee2e6 !important;
+}
+
+.categoryDescription img {
+  max-width: 100%;
+  height: auto;
+}
+
+.questionHtml img {
+  max-width: 100%;
+  height: auto;
+}
+
+.questionHtml p:last-child {
+  margin-bottom: 0;
+}
+
+/* Review panel: keep "A." and answer value on the same row */
+.resultOptionHtml {
+  flex: 1;
+  min-width: 0;
+}
+
+.resultOptionHtml p {
+  display: inline;
+  margin: 0;
+}
+
+:global(.questionImageEnlargeWrap) {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: middle;
+}
+
+:global(.questionImageEnlargeWrap) > img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+:global(.questionImageEnlargeBtn) {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.5rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background-color: rgba(0, 35, 65, 0.78);
+  color: #fff;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.15s ease,
+    background-color 0.15s ease;
+}
+
+:global(.questionImageEnlargeWrap:hover) :global(.questionImageEnlargeBtn),
+:global(.questionImageEnlargeWrap:focus-within) :global(.questionImageEnlargeBtn) {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+:global(.questionImageEnlargeBtn:hover) {
+  background-color: rgba(229, 138, 52, 0.95);
+}
+
+.imageLightboxBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1060;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background-color: rgba(0, 0, 0, 0.85);
+}
+
+.imageLightboxImg {
+  max-width: min(95vw, 1200px);
+  max-height: 90vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 6px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  cursor: default;
+}
+
+.imageLightboxClose {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.imageLightboxClose:hover {
+  background-color: rgba(255, 255, 255, 0.28);
+}
+
+.resultsScrollTarget {
+  scroll-margin-top: 1rem;
+}

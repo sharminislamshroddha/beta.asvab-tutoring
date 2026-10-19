@@ -1,0 +1,31 @@
+.overviewTestActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: 1.8rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 1.25rem;
+}
+
+.overviewTestBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.9rem !important;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.25;
+  border: none;
+  border-radius: 5px;
+}
+
+.sessionPlanIntro {
+  margin: 0 0 1.25rem;
+  color: #334155;
+  font-size: 0.98rem;
+  line-height: 1.65;
+}

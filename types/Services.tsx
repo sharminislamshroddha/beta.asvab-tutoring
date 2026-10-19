@@ -1,0 +1,1 @@
+export type ServiceType = "1-on-1-tutoring" | "group-tutoring" | "self-study";

@@ -1,0 +1,149 @@
+/* packageDetails.module.css */
+
+/* HERO / title area (screenshot-like) */
+.hero {
+  padding: 3.5rem 0;
+  /* background: linear-gradient(180deg, rgba(255,250,245,1) 0%, rgba(255,247,239,1) 100%); */
+  text-align: center;
+}
+
+.heroTitle {
+  color: #f2a155; /* orange heading */
+  font-weight: 700;
+  font-size: 2.1rem;
+  margin-bottom: 0.6rem;
+}
+
+.heroSubtitle {
+  color: #333;
+  max-width: 920px;
+  margin: 0 auto 1rem;
+  line-height: 1.45;
+}
+
+.heroBullets {
+  max-width: 880px;
+  margin: 1.25rem auto 0;
+  text-align: left;
+  list-style: none;
+  padding-left: 0;
+  color: #333;
+}
+
+.heroBullets li {
+  padding: 0.25rem 0;
+  margin-left: 1.25rem;
+  position: relative;
+}
+.heroBullets li::before {
+  content: "✔";
+  color: #2fa44f;
+  position: absolute;
+  left: -1.25rem;
+  top: 0;
+}
+
+/* Pricing grid */
+.pricingGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+}
+
+@media (max-width: 992px) {
+  .pricingGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 576px) {
+  .pricingGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pricingCard {
+  border-radius: 10px;
+  overflow: visible;
+  background: linear-gradient(180deg, #fffbe8 0%, #ffe6c7 100%);
+  border: 3px solid rgba(226, 160, 107, 0.7);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  transition: transform .18s ease, box-shadow .18s ease;
+  position: relative;
+}
+
+.pricingCard:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+}
+
+.cardInner {
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.cardTitle {
+  font-weight: 700;
+  color: #6f5b2f;
+  margin-bottom: 0.5rem;
+}
+
+.price {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #2fa44f;
+  margin: 0.6rem 0 1rem;
+}
+
+.cardFeatures {
+  list-style: none;
+  padding-left: 0;
+  color: #325;
+  margin-bottom: 1.1rem;
+}
+.cardFeatures li {
+  margin: 0.45rem 0;
+}
+
+/* Buy button */
+.buyBtn {
+  display: inline-block;
+  /* background: #43a047; */
+  color: #fff;
+  border: none;
+  padding: 0.65rem 1.25rem;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+}
+.buyBtn:hover {
+  background: #37883a;
+}
+
+/* Most popular badge */
+.mostPopularWrap {
+  position: relative;
+  background: linear-gradient(180deg,#fff7d0 0%, #ffd8a5 100%);
+  border-color: rgba(242,161,85,0.8);
+}
+
+.mostPopularBadge {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: -14px;
+  background: #5ebc6b;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+/* small responsive tweaks */
+@media (max-width: 768px) {
+  .heroTitle { font-size: 1.6rem; }
+  .price { font-size: 1.6rem; }
+}

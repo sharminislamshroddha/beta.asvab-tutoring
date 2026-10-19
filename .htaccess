@@ -1,0 +1,29 @@
+# Corrected .htaccess for Next.js on Cloudways
+RewriteEngine On
+RewriteBase /
+
+# Disable MultiViews to prevent conflicts
+Options -MultiViews
+
+# 1. Handle ALL "new." and "www." redirects to https://asvab-tutoring.com
+RewriteCond %{HTTP_HOST} ^new\.asvab-tutoring\.com$ [NC,OR]
+RewriteCond %{HTTP_HOST} ^www\.asvab-tutoring\.com$ [NC,OR]
+RewriteCond %{HTTP_HOST} ^www\.new\.asvab-tutoring\.com$ [NC]
+RewriteRule ^(.*)$ https://asvab-tutoring.com/$1 [R=301,L,NC]
+
+# 2. Specific Path Redirects (Strictly before index.php)
+RewriteRule ^asvab/?$ https://asvab-tutoring.com/courses/asvab [R=301,L,NC]
+RewriteRule ^oar/?$ https://asvab-tutoring.com/courses/oar [R=301,L,NC]
+RewriteRule ^afoqt/?$ https://asvab-tutoring.com/courses/afoqt [R=301,L,NC]
+RewriteRule ^sift/?$ https://asvab-tutoring.com/courses/sift [R=301,L,NC]
+RewriteRule ^astb/?$ https://asvab-tutoring.com/courses/astb [R=301,L,NC]
+
+# 3. Exception for the PHP API file
+RewriteRule ^practice-test/asvab-api\.php$ - [L]
+
+# 4. Next.js / Standard Routing
+# Check if the request is not for an existing file or directory
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+# Handle Next.js routing - adjust if using different file
+RewriteRule ^(.*)$ index.php [L,QSA]

@@ -1,0 +1,172 @@
+.container {
+  max-width: 900px;
+}
+
+.sliderWrapper {
+  padding: 0 50px;
+}
+
+.navButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #fca311;
+  font-size: 1.75rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.navButton:hover {
+  color: var(--primary-color-dark, #e58a34);
+}
+
+.navButton:focus-visible {
+  outline: 2px solid #fca311;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.navPrev {
+  left: 0;
+}
+
+.navNext {
+  right: 0;
+}
+
+.carousel :global(.carousel-item) {
+  transition: transform 1s ease-in-out;
+}
+
+.carousel :global(.carousel-inner) {
+  direction: rtl;
+}
+
+.carousel :global(.carousel-item) > div {
+  direction: ltr;
+}
+
+@media (max-width: 576px) {
+  .sliderWrapper {
+    padding: 0 35px;
+  }
+
+  .navButton {
+    width: 30px;
+    height: 30px;
+    font-size: 1.35rem;
+  }
+}
+
+.stars {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.2rem;
+  margin-top: 0.75rem;
+}
+
+.star {
+  color: var(--primary-color, #f2a155);
+  font-size: 1.05rem;
+}
+
+.text {
+  font-style: italic;
+  line-height: 1.6;
+  margin-bottom: 0;
+}
+
+.textBlock {
+  margin-top: 1rem;
+}
+
+.textClamped {
+  height: 6.4em; /* 4 lines at 1.6 line-height — fixed collapsed height */
+  overflow: hidden;
+}
+
+.textExpanded {
+  height: auto;
+}
+
+.textActions {
+  min-height: 1.5rem;
+  margin-top: 0.35rem;
+  display: flex;
+  justify-content: center;
+}
+
+.readMore {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--primary-color-dark, #e58a34);
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.4;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.readMore:hover {
+  color: var(--primary-color, #f2a155);
+}
+
+.readMore:focus-visible {
+  outline: 2px solid #fca311;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #fff4e8 0%, #fde5c8 100%);
+  color: var(--primary-color-dark, #e58a34);
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.author {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  text-align: left;
+}
+
+.courseName {
+  color: #4a5560;
+  font-size: 0.86rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.date {
+  color: #6b7785;
+  font-size: 0.82rem;
+  line-height: 1.3;
+}
+
+@media (max-width: 768px) {
+  .text {
+    font-size: 0.95rem;
+  }
+}

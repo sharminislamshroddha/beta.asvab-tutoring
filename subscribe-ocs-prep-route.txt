@@ -1,0 +1,366 @@
+import { NextRequest, NextResponse } from "next/server";
+import {
+  SquareClient,
+  SquareEnvironment,
+  SquareError,
+  Country,
+  Currency,
+} from "square";
+import crypto from "crypto";
+
+export const runtime = "nodejs";
+
+type Payload = {
+  sourceId: string;
+  product: string;
+  cadence: string;
+  userEmail: string;
+  userName?: string;
+  first_name?: string;
+  last_name?: string;
+  password?: string;
+  mobile?: string;
+  amount: number | string;
+  course_id?: string;
+  session_id?: string;
+  package_id?: string;
+  planVariationId: string;
+  postal_code?: string;
+  country_code?: string;
+};
+
+function cleanString(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function normalizeEmail(value: unknown): string {
+  return cleanString(value).toLowerCase();
+}
+
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+}
+
+function parseAmountToCents(amount: number | string): number {
+  const cleaned = String(amount ?? "").replace(/[^0-9.]/g, "");
+  if (!cleaned) return 0;
+
+  const parsed = Number(cleaned);
+  if (!Number.isFinite(parsed) || parsed <= 0) return 0;
+
+  return Math.round(parsed * 100);
+}
+
+function buildIdempotencyKey(...parts: string[]): string {
+  return crypto.createHash("sha256").update(parts.join("|")).digest("hex");
+}
+
+function getSquareEnvironment(): SquareEnvironment {
+  const env = String(process.env.SQUARE_ENVIRONMENT || "sandbox")
+    .trim()
+    .toLowerCase();
+
+  return env === "production"
+    ? SquareEnvironment.Production
+    : SquareEnvironment.Sandbox;
+}
+
+function assertRequiredEnv(): void {
+  const missing: string[] = [];
+
+  if (!process.env.SQUARE_ACCESS_TOKEN) missing.push("SQUARE_ACCESS_TOKEN");
+  if (!process.env.SQUARE_LOCATION_ID) missing.push("SQUARE_LOCATION_ID");
+  if (!process.env.PHP_API_URL) missing.push("PHP_API_URL");
+
+  if (missing.length) {
+    throw new Error("Server configuration missing.");
+  }
+}
+
+function validatePayload(body: Payload): void {
+  if (!cleanString(body.sourceId)) {
+    throw new Error("Payment method not verified.");
+  }
+
+  if (!cleanString(body.planVariationId)) {
+    throw new Error("Missing planVariationId.");
+  }
+
+  if (!cleanString(body.product)) {
+    throw new Error("Product is required.");
+  }
+
+  if (!cleanString(body.cadence)) {
+    throw new Error("Cadence is required.");
+  }
+
+  const email = normalizeEmail(body.userEmail);
+  if (!email || !isValidEmail(email)) {
+    throw new Error("Valid email is required.");
+  }
+
+  const amountInCents = parseAmountToCents(body.amount);
+  if (!amountInCents) {
+    throw new Error("Invalid amount.");
+  }
+}
+
+function splitName(body: Payload) {
+  const first = cleanString(body.first_name);
+  const last = cleanString(body.last_name);
+  const full = cleanString(body.userName);
+
+  if (first || last) {
+    return {
+      firstName: first,
+      lastName: last,
+    };
+  }
+
+  if (!full) {
+    return {
+      firstName: "",
+      lastName: "",
+    };
+  }
+
+  const parts = full.split(/\s+/);
+
+  return {
+    firstName: parts[0] || "",
+    lastName: parts.slice(1).join(" "),
+  };
+}
+
+function normalizePhoneE164(value: unknown): string | undefined {
+  const raw = cleanString(value);
+  if (!raw) return undefined;
+
+  const compact = raw.replace(/[^\d+]/g, "");
+
+  if (/^\+[1-9]\d{7,14}$/.test(compact)) {
+    return compact;
+  }
+
+  return undefined;
+}
+
+function safeCountryCode(value: unknown): Country {
+  const code = cleanString(value).toUpperCase();
+
+  switch (code) {
+    case "CA":
+      return Country.Ca;
+    case "GB":
+      return Country.Gb;
+    case "AU":
+      return Country.Au;
+    case "US":
+    default:
+      return Country.Us;
+  }
+}
+
+async function saveSubscriptionToPhp(args: {
+  squareSubscriptionId: string;
+  squareCustomerId: string;
+  planVariationId: string;
+  userEmail: string;
+  password?: string;
+  first_name: string;
+  last_name: string;
+  mobile?: string;
+  course_id?: string;
+  session_id?: string;
+  package_id?: string;
+  amountInCents: number;
+}) {
+  const phpUrl = process.env.PHP_API_URL!;
+  const phpSecret = cleanString(process.env.INTERNAL_API_SECRET || "");
+  const form = new URLSearchParams();
+
+  form.append("action", "user-registration-subscription");
+  form.append("subscription_id", args.squareSubscriptionId);
+  form.append("square_customer_id", args.squareCustomerId);
+  form.append("plan_variation_id", args.planVariationId);
+
+  form.append("email", args.userEmail);
+  form.append("password", args.password || "");
+  form.append("first_name", args.first_name);
+  form.append("last_name", args.last_name);
+  form.append("mobile", args.mobile || "");
+
+  form.append("course_id", args.course_id || "0");
+  form.append("session_id", args.session_id || "0");
+  form.append("package_id", args.package_id || "0");
+
+  form.append("amount", String(args.amountInCents));
+  form.append("currency", "USD");
+
+  const res = await fetch(phpUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      ...(phpSecret ? { "X-ASVAB-SECRET": phpSecret } : {}),
+    },
+    body: form.toString(),
+    cache: "no-store",
+  });
+
+  const raw = await res.text();
+
+  let parsed: any = null;
+
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    console.error("PHP RAW RESPONSE:", raw);
+    throw new Error("Failed to finalize account on our system.");
+  }
+
+  if (!res.ok || !parsed?.isSuccess) {
+    console.error("PHP SYNC FAILED:", {
+      status: res.status,
+      parsed,
+    });
+    throw new Error(parsed?.message || "Failed to finalize account on our system.");
+  }
+
+  return parsed;
+}
+
+const squareClient = new SquareClient({
+  token: process.env.SQUARE_ACCESS_TOKEN!,
+  environment: getSquareEnvironment(),
+});
+
+export async function POST(req: NextRequest) {
+  try {
+    assertRequiredEnv();
+
+    const body: Payload = await req.json();
+    validatePayload(body);
+
+    const amountInCents = parseAmountToCents(body.amount);
+    const { firstName, lastName } = splitName(body);
+    const userEmail = normalizeEmail(body.userEmail);
+    const phoneNumber = normalizePhoneE164(body.mobile);
+
+    const idBase = [
+      userEmail,
+      cleanString(body.course_id),
+      cleanString(body.session_id),
+      cleanString(body.package_id),
+      cleanString(body.planVariationId),
+      String(amountInCents),
+    ];
+
+    const customerPayload: any = {
+      idempotencyKey: buildIdempotencyKey("customer", ...idBase),
+      givenName: firstName,
+      familyName: lastName,
+      emailAddress: userEmail,
+    };
+
+    if (phoneNumber) {
+      customerPayload.phoneNumber = phoneNumber;
+    }
+
+    const { customer } = await squareClient.customers.create(customerPayload);
+
+    if (!customer?.id) {
+      throw new Error("Payment profile creation failed.");
+    }
+
+    const { card } = await squareClient.cards.create({
+      idempotencyKey: buildIdempotencyKey(
+        "card",
+        ...idBase,
+        cleanString(body.sourceId)
+      ),
+      sourceId: cleanString(body.sourceId),
+      card: {
+        customerId: customer.id,
+        cardholderName: `${firstName} ${lastName}`.trim(),
+        billingAddress: {
+          postalCode: cleanString(body.postal_code) || undefined,
+          country: safeCountryCode(body.country_code),
+        },
+      },
+    });
+
+    if (!card?.id) {
+      throw new Error("Card authorization failed.");
+    }
+
+    const { order } = await squareClient.orders.create({
+      idempotencyKey: buildIdempotencyKey("order", ...idBase),
+      order: {
+        locationId: process.env.SQUARE_LOCATION_ID!,
+        state: "DRAFT",
+        lineItems: [
+          {
+            name: `${cleanString(body.product)} Subscription`,
+            quantity: "1",
+            basePriceMoney: {
+              amount: BigInt(amountInCents),
+              currency: Currency.Usd,
+            },
+          },
+        ],
+      },
+    });
+
+    const { subscription } = await squareClient.subscriptions.create({
+      idempotencyKey: buildIdempotencyKey("subscription", ...idBase),
+      locationId: process.env.SQUARE_LOCATION_ID!,
+      customerId: customer.id,
+      planVariationId: cleanString(body.planVariationId),
+      cardId: card.id,
+      phases: [{ ordinal: BigInt(0), orderTemplateId: order?.id }],
+    });
+
+    if (!subscription?.id) {
+      throw new Error("Subscription activation failed.");
+    }
+
+    const phpResponse = await saveSubscriptionToPhp({
+      squareSubscriptionId: subscription.id,
+      squareCustomerId: customer.id,
+      planVariationId: cleanString(body.planVariationId),
+      userEmail,
+      password: body.password,
+      first_name: firstName,
+      last_name: lastName,
+      mobile: cleanString(body.mobile),
+      course_id: cleanString(body.course_id),
+      session_id: cleanString(body.session_id),
+      package_id: cleanString(body.package_id),
+      amountInCents,
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: "Subscription created successfully!",
+      subscriptionId: subscription.id,
+      php: phpResponse,
+    });
+  } catch (error: any) {
+    console.error("ROUTE ERROR:", error);
+
+    if (error instanceof SquareError) {
+      const detail =
+        error.errors?.[0]?.detail ||
+        error.errors?.[0]?.category ||
+        "We couldn't complete the request with our payment provider.";
+      return NextResponse.json({ success: false, message: detail }, { status: 400 });
+    }
+
+    const message =
+      error?.message && typeof error.message === "string"
+        ? error.message
+        : "Unable to complete the subscription request.";
+
+    return NextResponse.json({ success: false, message }, { status: 400 });
+  }
+}

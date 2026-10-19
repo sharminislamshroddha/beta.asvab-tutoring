@@ -1,0 +1,429 @@
+/* coursePricing.module.css — pricing panel for course detail pages */
+
+.panel {
+  position: sticky;
+  top: 120px;
+  border: 1px solid #e3e8ec;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+  padding: 1.35rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.panelTitle {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #002341;
+  text-align: center;
+  margin-bottom: 1.1rem;
+}
+
+.selectedCourseContext {
+  margin: -0.35rem 0 1rem;
+  padding: 0.75rem 0.85rem;
+  background: linear-gradient(135deg, #fffaf5 0%, #f8fafb 100%);
+  border: 1px solid #eef2f6;
+  border-radius: 10px;
+}
+
+.courseSelectLabel {
+  display: block;
+  margin: 0 0 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #002341;
+}
+
+.courseSelect {
+  width: 100%;
+  appearance: none;
+  border: 1px solid #d7dee5;
+  border-radius: 8px;
+  background: #fff
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%234a5560' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    no-repeat right 0.85rem center;
+  color: #002341;
+  font-size: 0.92rem;
+  font-weight: 700;
+  padding: 0.55rem 2rem 0.55rem 0.75rem;
+  cursor: pointer;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.courseSelect:hover {
+  border-color: #e58a34;
+}
+
+.courseSelect:focus {
+  outline: none;
+  border-color: #e58a34;
+  box-shadow: 0 0 0 3px rgba(229, 138, 52, 0.18);
+}
+
+.selectedCourseHint {
+  margin: 0.55rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: #6b7280;
+}
+
+/* Service tabs */
+.tabBar {
+  display: flex;
+  gap: 0.4rem;
+  background: #f1f4f7;
+  border-radius: 10px;
+  padding: 0.3rem;
+  margin-bottom: 1.25rem;
+}
+
+.tabBtn {
+  flex: 1 1 0;
+  border: none;
+  background: transparent;
+  color: #4a5560;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.5rem 0.35rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+  line-height: 1.2;
+}
+
+.tabBtn:hover {
+  color: #002341;
+}
+
+.tabBtnActive {
+  background: #e58a34;
+  color: #fff;
+  box-shadow: 0 3px 8px rgba(229, 138, 52, 0.35);
+}
+
+.tabBtnActive:hover {
+  color: #fff !important;
+}
+
+/* Card list — no scroll, vertical stack */
+.cardsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+/* ── Plan card (distinct list-style design) ── */
+.planCard {
+  position: relative;
+  background: #fff;
+  border: 1px solid #e3e8ec;
+  border-left: 4px solid #e58a34;
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.05),
+    0 8px 22px rgba(0, 0, 0, 0.1);
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.planCard:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 4px 10px rgba(0, 0, 0, 0.07),
+    0 14px 32px rgba(0, 0, 0, 0.14);
+}
+
+.planCardPopular {
+  border-color: #f2a155;
+  border-left-color: #e58a34;
+  background: linear-gradient(180deg, #fffaf2 0%, #fff 60%);
+  box-shadow:
+    0 2px 6px rgba(229, 138, 52, 0.08),
+    0 8px 22px rgba(229, 138, 52, 0.16);
+}
+
+.planCardPopular:hover {
+  box-shadow:
+    0 4px 10px rgba(229, 138, 52, 0.1),
+    0 14px 32px rgba(229, 138, 52, 0.22);
+}
+
+.planCardLimited {
+  border-color: #f5b87a;
+  border-left-color: #d9534f;
+  background: linear-gradient(180deg, #fff8f0 0%, #fff5eb 50%, #fff 100%);
+  box-shadow:
+    0 2px 6px rgba(217, 83, 79, 0.08),
+    0 8px 22px rgba(217, 83, 79, 0.16);
+}
+
+.planCardLimited:hover {
+  box-shadow:
+    0 4px 10px rgba(217, 83, 79, 0.1),
+    0 14px 32px rgba(217, 83, 79, 0.22);
+}
+
+.planTag {
+  position: absolute;
+  top: -10px;
+  right: 14px;
+  background: #5ebc6b;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 3px 10px;
+  border-radius: 12px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+}
+
+.planTagLimited {
+  position: absolute;
+  top: -10px;
+  left: 14px;
+  background: linear-gradient(135deg, #d9534f 0%, #e58a34 100%);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 3px 10px;
+  border-radius: 12px;
+  box-shadow: 0 3px 8px rgba(217, 83, 79, 0.25);
+  white-space: nowrap;
+}
+
+.planCardLimited.planCardPopular .planTag {
+  top: -10px;
+  right: 10px;
+}
+
+.planHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.planName {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #002341;
+  line-height: 1.25;
+}
+
+.planPrice {
+  flex-shrink: 0;
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #2fa44f;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.planCurrency {
+  font-size: 1rem;
+  font-weight: 800;
+  vertical-align: super;
+  margin-right: 1px;
+}
+
+.planFeatures {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+}
+
+.planFeatures li {
+  position: relative;
+  padding-left: 1.4rem;
+  margin-bottom: 0.35rem;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: #4a5560;
+}
+
+.planFeatures li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #2fa44f;
+  font-weight: 800;
+}
+
+.planBtn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin-top: 0.9rem;
+  background: #e58a34;
+  color: #fff !important;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 0.6rem 1rem;
+  transition:
+    background 0.16s ease,
+    transform 0.16s ease;
+}
+
+.planBtn:hover {
+  background: #cf7826;
+  transform: translateY(-1px);
+}
+
+.planBtnLimited {
+  background: linear-gradient(135deg, #d9534f 0%, #e58a34 100%);
+}
+
+.planBtnLimited:hover {
+  background: linear-gradient(135deg, #c9302c 0%, #cf7826 100%);
+}
+
+/* Footer note + service CTA */
+.noteText {
+  font-size: 0.78rem;
+  color: #6b7280;
+  margin: 1.1rem 0 0.85rem;
+  line-height: 1.45;
+}
+
+.noteText .noteLabel {
+  font-weight: 700;
+  color: #d9534f;
+}
+
+.detailsBtn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  border: 2px solid #e58a34;
+  color: #e58a34 !important;
+  background: transparent;
+  border-radius: 8px;
+  font-weight: 700;
+  padding: 0.6rem 1rem;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.detailsBtn:hover {
+  background: #e58a34;
+  color: #fff !important;
+}
+
+.emptyState {
+  font-size: 0.9rem;
+  color: #6b7280;
+  text-align: center;
+  padding: 1.5rem 0;
+}
+
+.prepStack {
+  border: 1px solid #e3e8ec;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+}
+
+.prepIntro {
+  background: linear-gradient(135deg, #fffaf5 0%, #fff 52%, #f8fafb 100%);
+  padding: 1.15rem 1.15rem 1rem;
+  border-bottom: 1px solid #eef2f6;
+}
+
+.prepIntroHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.55rem;
+}
+
+.prepIntroIcon {
+  color: #e58a34;
+  font-size: 0.9rem;
+}
+
+.prepIntroTitle {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #002341;
+}
+
+.prepIntroText {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #5c6670;
+}
+
+.prepIntroBenefits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.65rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.prepIntroBenefits li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.79rem;
+  font-weight: 600;
+  color: #002341;
+  background: rgba(0, 35, 65, 0.05);
+  border: 1px solid rgba(0, 35, 65, 0.08);
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+}
+
+.prepIntroBenefits li i {
+  color: #2fa44f;
+  font-size: 0.68rem;
+}
+
+.panelEmbedded {
+  position: static;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  margin-top: 0;
+  padding-top: 1rem;
+}
+
+/* On mobile the panel is no longer sticky */
+@media (max-width: 991.98px) {
+  .panel {
+    position: static;
+    margin-top: 2rem;
+  }
+
+  .panelEmbedded {
+    margin-top: 0;
+    padding-top: 0.85rem;
+  }
+
+  .panelEmbedded .panelTitle {
+    margin-top: 0.35rem;
+  }
+}

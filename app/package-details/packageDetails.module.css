@@ -1,0 +1,278 @@
+/* packageDetails.module.css */
+
+/* HERO / title area (screenshot-like) */
+.hero {
+  padding: 3.5rem 0;
+  text-align: center;
+}
+
+.heroTitle {
+  color: #f2a155;
+  /* orange heading */
+  font-weight: 700;
+  font-size: 2.1rem;
+  margin-bottom: 0.6rem;
+  text-align: center !important;
+}
+
+.heroSubtitle {
+  max-width: 920px;
+  margin: 0 auto 1rem;
+  line-height: 1.45;
+}
+
+.heroBullets {
+  max-width: 880px;
+  margin: 1.25rem auto 0;
+  text-align: left;
+  list-style: none;
+  padding-left: 0;
+  color: #333;
+}
+
+.heroBullets li {
+  padding: 0.25rem 0;
+  margin-left: 1.25rem;
+  position: relative;
+}
+
+.heroBullets li::before {
+  content: "✔";
+  color: #2fa44f;
+  position: absolute;
+  left: -1.25rem;
+  top: 0;
+}
+
+/* Pricing grid */
+.pricingGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  justify-content: center;
+  margin: 3.5rem auto;
+  width: 100%;
+}
+
+/* Card */
+.pricingCard {
+  width: 100%;
+  max-width: 300px;
+  flex: 0 1 300px;
+  position: relative;
+  border-radius: 10px;
+  overflow: visible;
+  background: linear-gradient(180deg, #fffbe8 0%, #ffe6c7 100%);
+  border: 3px solid rgba(226, 160, 107, 0.7);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+@media (min-width: 500px) {
+  .pricingGrid {
+    max-width: 660px; /* Limits the grid to a width where only 2 cards can fit */
+  }
+  .pricingCard {
+    flex: 1 1 230px; /* Small enough for BS 540px container at 576-767px viewport */
+  }
+}
+
+@media (min-width: 768px) {
+  .pricingCard {
+    flex: 1 1 310px; /* Large enough to prevent 3rd card at 992px+ (960px container) */
+  }
+}
+
+@media (min-width: 1200px) {
+  .pricingGrid {
+    max-width: 1280px; /* Expands to fit 4 cards + gaps */
+  }
+  .pricingCard {
+    flex: 1 1 240px; /* Optimized for 4 per row */
+  }
+}
+
+.pricingCard:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* IMPORTANT: make all cards equal-height and align zones */
+.cardInner {
+  padding: 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 360px;
+  /* keeps consistent height across cards */
+}
+
+/* fixed title zone so titles always align */
+.cardTitleWrap {
+  min-height: 64px;
+  /* adjust if you need more space */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.cardTitle {
+  font-weight: 800;
+  color: #6f5b2f;
+  margin: 0;
+  line-height: 1.2;
+
+  /* keep title from pushing layout (2 lines max) */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+/* fixed price zone so prices align */
+.priceWrap {
+  min-height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.price {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #2fa44f;
+  margin: 0;
+}
+
+/* ✅ fixed feature zone so features align */
+.featureWrap {
+  min-height: 120px;
+  /* increase if your feature text is longer */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.75rem;
+}
+
+/* Highlighted feature box (center, pinned feel) */
+.featureBox {
+  /* ✅ fixed size for visual consistency */
+  width: 100%;
+  max-width: 260px;
+  min-height: 96px;
+  /* 🔑 same height for all cards */
+  height: 96px;
+
+  /* Center content */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+
+  padding: 0.75rem 0.9rem;
+
+  /* Typography */
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #1f2937;
+
+  /* Visual style */
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(243, 210, 168, 0.9);
+  border-radius: 12px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Remove default <p> spacing inside featureBox */
+.featureBox p {
+  margin: 0 !important;
+}
+
+.featureBox p + p {
+  margin-top: 0.35rem;
+}
+
+/* ✅ Footer button always at bottom */
+.cardFooter {
+  margin-top: auto;
+  padding-top: 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+/* Buy button */
+.buyBtn {
+  display: inline-block;
+  color: #fff;
+  border: none;
+  padding: 0.65rem 1.25rem;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  max-width: 200px;
+}
+
+.buyBtn:hover {
+  background: #37883a;
+}
+
+/* Most popular badge */
+.mostPopularWrap {
+  position: relative;
+  background: linear-gradient(180deg, #fff7d0 0%, #ffd8a5 100%);
+  border-color: rgba(242, 161, 85, 0.8);
+}
+
+.mostPopularBadge {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: -14px;
+  background: #5ebc6b;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.ckContent {
+  text-align: left;
+  margin-bottom: 3rem;
+  margin-top: 1.5rem;
+}
+
+/* small responsive tweaks */
+/* @media (max-width: 768px) {
+  .heroTitle {
+    font-size: 1.6rem;
+  }
+
+  .price {
+    font-size: 1.6rem;
+  }
+
+  .cardInner {
+    min-height: 340px;
+  }
+
+  .featureWrap {
+    min-height: 110px;
+  }
+
+  .featureBox {
+    font-size: 1.05rem;
+  }
+} */

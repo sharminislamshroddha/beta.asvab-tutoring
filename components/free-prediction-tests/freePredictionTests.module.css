@@ -1,0 +1,88 @@
+.intro {
+  color: #495057;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  max-width: 42rem;
+  margin-bottom: 2rem;
+}
+
+.intro p:last-child {
+  margin-bottom: 0;
+}
+
+.intro p + p {
+  margin-top: 1rem;
+}
+
+.sectionHeading {
+  color: #002341;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  font-size: 1.65rem;
+}
+
+.categoryBlock + .categoryBlock {
+  margin-top: 1.75rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid #dee2e6;
+}
+
+.categoryHeading {
+  color: #002341;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  font-size: 1.35rem;
+}
+
+.categoryIntro {
+  color: #495057;
+  font-size: 0.98rem;
+  line-height: 1.5;
+  margin-bottom: 1.25rem;
+}
+
+.courseCard {
+  position: relative;
+  scroll-margin-top: 6rem;
+  transition: box-shadow 0.15s ease, outline-color 0.15s ease;
+}
+
+.courseCard:hover {
+  outline: 2px solid #e58a34;
+  outline-offset: 2px;
+  box-shadow: 0 8px 24px rgba(229, 138, 52, 0.15) !important;
+}
+
+.courseCardLink {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.courseCardActions {
+  position: relative;
+  z-index: 2;
+}
+
+.courseCardImg {
+  height: 180px;
+  object-fit: cover;
+}
+
+.sectionBadge {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  color: #495057;
+  font-size: 0.75rem;
+}
+
+.sectionNames {
+  color: #6c757d;
+  font-size: 0.85rem;
+}
+
+.emptyState {
+  width: 100%;
+  max-width: 32rem;
+  margin: 0 auto;
+}
