@@ -44,6 +44,8 @@
   border: 1px solid var(--study-border);
   border-radius: var(--study-radius);
   padding: 1rem;
+  min-width: 0;
+  overflow: hidden;
 }
 
 @media (min-width: 992px) {
@@ -74,17 +76,26 @@
   font-size: 1.15rem;
 }
 
+.sidebarCourseText {
+  min-width: 0;
+  flex: 1;
+}
+
 .sidebarCourseName {
   font-weight: 700;
   color: var(--study-navy);
   line-height: 1.2;
   margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .sidebarUser {
   font-size: 0.82rem;
   color: var(--study-muted);
   margin: 0.15rem 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .navList {
@@ -156,7 +167,31 @@
 }
 
 .navLink i {
+  flex: 0 0 auto;
   color: var(--study-orange);
+}
+
+/* Desktop sidebar: long topic names wrap inside the sidebar
+   (the mobile bar keeps one line and scrolls sideways) */
+@media (min-width: 992px) {
+  .navList > li {
+    min-width: 0;
+  }
+
+  .navLink {
+    white-space: normal;
+    align-items: flex-start;
+    line-height: 1.3;
+  }
+
+  .navLink span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .navLink i {
+    margin-top: 0.1rem;
+  }
 }
 
 .planBadge {

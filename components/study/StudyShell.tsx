@@ -87,10 +87,13 @@ export default function StudyShell({
                 <div className={styles.courseIcon} aria-hidden="true">
                   <i className="bi bi-mortarboard" />
                 </div>
-                <div>
+                <div className={styles.sidebarCourseText}>
                   <p className={styles.sidebarCourseName}>{dashboard.course.name}</p>
                   {user && (
-                    <p className={styles.sidebarUser}>
+                    <p
+                      className={styles.sidebarUser}
+                      title={`${user.first_name} ${user.last_name}`.trim() || user.email}
+                    >
                       {`${user.first_name} ${user.last_name}`.trim() || user.email}
                     </p>
                   )}
