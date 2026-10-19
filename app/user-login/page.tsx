@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { BsEye, BsEyeSlash } from "react-icons/bs";
 import { useAuth } from "@/components/auth/AuthProvider";
 import AlreadySignedInCard from "@/components/auth/AlreadySignedInCard";
-import { resolvePortalLoginUrl } from "@/lib/portal-login";
+import { STUDY_PORTAL_HREF } from "@/lib/portal-login";
 
 type LoginStatus = { type: "success" | "error"; text: string } | null;
 
@@ -42,10 +42,9 @@ export default function LoginPage() {
         if (result.user) setUser(result.user);
         await refresh();
 
-        const portalUrl = String(result.portalUrl || "").trim();
         if (result.paidUser) {
           redirecting = true;
-          window.location.href = resolvePortalLoginUrl(portalUrl);
+          router.push(STUDY_PORTAL_HREF);
           return;
         }
         // Unpaid user — redirect home (session cookie already set)

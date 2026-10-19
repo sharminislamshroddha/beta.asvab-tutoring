@@ -2,8 +2,8 @@ const FALLBACK_PORTAL =
   process.env.NEXT_PUBLIC_RESOURCES_URL?.replace(/\/$/, "") ||
   "https://test-prep.asvab-tutoring.com";
 
-/** Same-origin path that 302s into the study portal with a login session. */
-export const STUDY_PORTAL_HREF = "/api/auth/study-portal";
+/** Logged-in student study area (app/study). The old PHP portal hand-off is /api/auth/study-portal. */
+export const STUDY_PORTAL_HREF = "/study";
 
 export function resolvePortalLoginUrl(phpUrl: string | undefined | null): string {
   const raw = String(phpUrl || "").trim();
