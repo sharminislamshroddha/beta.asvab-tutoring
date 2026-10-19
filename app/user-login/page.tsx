@@ -42,14 +42,10 @@ export default function LoginPage() {
         if (result.user) setUser(result.user);
         await refresh();
 
-        if (result.paidUser) {
-          redirecting = true;
-          router.push(STUDY_PORTAL_HREF);
-          return;
-        }
-        // Unpaid user — redirect home (session cookie already set)
+        // Every logged-in user lands on the study dashboard; it shows
+        // free lessons and renewal prompts for unpaid users.
         redirecting = true;
-        router.push("/");
+        router.push(STUDY_PORTAL_HREF);
         return;
       } else {
         setStatus({
