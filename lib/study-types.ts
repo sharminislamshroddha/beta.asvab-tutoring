@@ -174,6 +174,15 @@ export type ScoreCard = {
   feedback: ScoreFeedback | null;
 };
 
+/** Full ASVAB prediction test, shown in the "ASVAB SCORE REPORT" format. */
+export type AsvabScoreReport = {
+  sessionDate: string;
+  applicantName: string;
+  standardScores: { code: string; score: number }[];
+  composites: { branch: string; score: number }[];
+  afqt: number | null;
+};
+
 export type PredictionReport = {
   pred_test_id: number;
   test_name: string;
@@ -183,6 +192,7 @@ export type PredictionReport = {
   sections: ScoreCard[];
   composites: ScoreCard[];
   feedback: ScoreFeedback | null;
+  asvab: AsvabScoreReport | null;
 };
 
 export type PredictionReview = {
@@ -466,6 +476,41 @@ const REPORT_META_KEYS = new Set([
   "score_feedback",
 ]);
 
+const ASVAB_COMPOSITES: [string, string][] = [
+  ["marine_gt", "Marine"],
+  ["navy_gt", "Navy"],
+  ["army_gt", "Army"],
+];
+
+/** Full ASVAB reports carry VE and the Marine / Navy / Army GT composites. */
+function readAsvabReport(report: Json): AsvabScoreReport | null {
+  if (!ASVAB_COMPOSITES.some(([key]) => asRecord(report[key]).score != null)) return null;
+
+  // Section cards keep the prediction test's section order
+  const standardScores: { code: string; score: number }[] = [];
+  for (const [key, value] of Object.entries(report)) {
+    if (REPORT_META_KEYS.has(key) || key === "VE" || ASVAB_COMPOSITES.some(([k]) => k === key)) continue;
+    const card = asRecord(value);
+    if (!card.shortcode || card.score == null) continue;
+    standardScores.push({ code: str(card.shortcode), score: Math.round(num(card.score)) });
+  }
+  const ve = asRecord(report.VE);
+  if (ve.score != null && ve.score !== "") standardScores.push({ code: "VE", score: Math.round(num(ve.score)) });
+
+  const afqtSource = asRecord(report.prediction_score).score ?? asRecord(report.afqt_percentile_score).score;
+
+  return {
+    sessionDate: str(report.session_date),
+    applicantName: str(report.applicant_name),
+    standardScores,
+    composites: ASVAB_COMPOSITES.filter(([key]) => asRecord(report[key]).score != null).map(([key, branch]) => ({
+      branch,
+      score: Math.round(num(asRecord(report[key]).score)),
+    })),
+    afqt: afqtSource == null || afqtSource === "" ? null : Math.round(num(afqtSource)),
+  };
+}
+
 export function normalizePredictionReport(json: unknown): PredictionReport {
   const rec = asRecord(json);
   const test = asRecord(rec.prediction_test);
@@ -492,6 +537,7 @@ export function normalizePredictionReport(json: unknown): PredictionReport {
     sections,
     composites,
     feedback: normalizeFeedback(report.score_feedback) || main?.feedback || null,
+    asvab: readAsvabReport(report),
   };
 }
 

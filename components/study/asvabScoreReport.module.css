@@ -1,0 +1,161 @@
+/* "ASVAB SCORE REPORT" layout for Full ASVAB prediction test results */
+
+.report {
+  background: #fff;
+  border: 1px solid #e3e8ef;
+  border-radius: 14px;
+  padding: 1.5rem 1.5rem 1.75rem;
+  margin-bottom: 1.75rem;
+  color: #333;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.title {
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #333;
+  margin: 0 0 1.5rem;
+}
+
+.details {
+  margin: 0 0 1.25rem 0.6rem;
+}
+
+.detailRow {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 0.5rem 1rem;
+  margin-bottom: 0.9rem;
+  font-size: 1.05rem;
+}
+
+.detailRow dt {
+  font-weight: 700;
+}
+
+.detailRow dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.rule {
+  border: 0;
+  border-top: 2px solid #cfcfcf;
+  opacity: 1;
+  margin: 1.5rem 0;
+}
+
+.standard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 1.5rem;
+  padding-left: 1.25rem;
+}
+
+.standardLabel {
+  font-size: 1.05rem;
+  white-space: nowrap;
+}
+
+.standardScroll {
+  overflow-x: auto;
+}
+
+.standardTable {
+  border-collapse: collapse;
+}
+
+.standardTable th,
+.standardTable td {
+  text-align: center;
+  padding: 0.55rem 0.7rem;
+  font-size: 1.05rem;
+}
+
+.standardTable th {
+  font-weight: 700;
+}
+
+.compositeTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0 0 1.5rem;
+  color: #333;
+}
+
+.compositeTable {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #cfcfcf;
+  margin-bottom: 1.75rem;
+}
+
+.compositeTable tr + tr {
+  border-top: 1px solid #cfcfcf;
+}
+
+.compositeTable th {
+  width: 30%;
+  min-width: 110px;
+  padding: 0.75rem 1.9rem;
+  font-weight: 700;
+  font-size: 1.05rem;
+  vertical-align: middle;
+}
+
+.compositeTable td {
+  padding: 0.6rem 0.75rem;
+  font-size: 1.05rem;
+  line-height: 2;
+}
+
+.compositeCode {
+  font-weight: 700;
+}
+
+.afqt {
+  display: flex;
+  gap: 2.75rem;
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.afqtValue {
+  font-weight: 700;
+}
+
+@media (max-width: 575.98px) {
+  .report {
+    padding: 1.25rem 1rem;
+  }
+
+  .title {
+    font-size: 1.3rem;
+  }
+
+  .details {
+    margin-left: 0;
+  }
+
+  .detailRow {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.1rem;
+  }
+
+  .standard {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+    padding-left: 0;
+  }
+
+  .compositeTable th {
+    padding: 0.75rem 1rem;
+  }
+
+  .afqt {
+    gap: 1.25rem;
+  }
+}
