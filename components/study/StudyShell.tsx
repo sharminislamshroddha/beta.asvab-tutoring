@@ -189,10 +189,10 @@ export default function StudyShell({
                   aria-current={overviewActive ? "page" : undefined}
                 >
                   <span className={styles.lessonNavIndex} aria-hidden="true">
-                    <i className="bi bi-grid" />
+                    <i className="bi bi-list-ul" />
                   </span>
                   <span className={styles.lessonNavText}>
-                    <span className={styles.lessonNavName}>Topic overview</span>
+                    <span className={styles.lessonNavName}>All lessons</span>
                   </span>
                 </Link>
               </li>
