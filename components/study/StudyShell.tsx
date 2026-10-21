@@ -69,6 +69,32 @@ export default function StudyShell({
     return () => window.clearTimeout(id);
   }, [pathname]);
 
+  // Desktop: the sidebar never runs past the bottom of the screen, also before it
+  // sticks (when the site header is still above it); the menu scrolls inside
+  const sidebarRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const sidebar = sidebarRef.current;
+    if (!sidebar) return;
+    const gap = 16;
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const top = Math.max(sidebar.getBoundingClientRect().top, gap);
+      sidebar.style.setProperty("--study-sidebar-max", `${Math.max(240, window.innerHeight - top - gap)}px`);
+    };
+    const schedule = () => {
+      if (!frame) frame = window.requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    return () => {
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
   const toggleCategory = (catId: number) =>
     setExpanded((prev) => {
       const next = new Set(prev);
@@ -214,7 +240,7 @@ export default function StudyShell({
       />
       <div className="container">
         <div className={styles.layout}>
-          <aside className={styles.sidebar} aria-label="Study navigation">
+          <aside ref={sidebarRef} className={styles.sidebar} aria-label="Study navigation">
             {dashboard?.course && (
               <div className={styles.sidebarCourse}>
                 <div className={styles.courseIcon} aria-hidden="true">

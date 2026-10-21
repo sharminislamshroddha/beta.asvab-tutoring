@@ -54,8 +54,8 @@
   .sidebar {
     position: sticky;
     top: 1rem;
-    height: calc(100vh - 2rem);
-    height: calc(100dvh - 2rem);
+    /* --study-sidebar-max is the space left on screen (set by StudyShell) */
+    max-height: var(--study-sidebar-max, calc(100vh - 2rem));
     display: flex;
     flex-direction: column;
     padding: 0;
