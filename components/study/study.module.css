@@ -1580,3 +1580,371 @@ button.option:hover:not(:disabled) {
     animation: none;
   }
 }
+
+/* ---------- All lessons (category) page ---------- */
+
+.catSummary {
+  padding: 1.1rem;
+  margin-bottom: 1rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.catStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.65rem;
+}
+
+.catStat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  background: #f6f8fb;
+  border-radius: 12px;
+  padding: 0.8rem 0.95rem;
+}
+
+.catStatLabel {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--study-muted);
+}
+
+.catStatValue {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--study-navy);
+  line-height: 1.1;
+}
+
+.catStatValue small {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--study-muted);
+}
+
+.catStatHint {
+  font-size: 0.8rem;
+  color: var(--study-muted);
+}
+
+.catMeter,
+.miniMeter {
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: #e3e8ef;
+  overflow: hidden;
+}
+
+.catMeter {
+  margin-top: 0.3rem;
+}
+
+.catMeter > span,
+.miniMeter > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--study-green);
+}
+
+.upNext {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  background: var(--study-orange-soft);
+  border: 1px solid #f4cfa8;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+}
+
+.upNextDone {
+  background: var(--study-green-soft);
+  border-color: #bfe3cd;
+}
+
+.upNextIcon {
+  flex: 0 0 auto;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--study-orange);
+  color: #fff;
+  font-size: 1.2rem;
+}
+
+.upNextDone .upNextIcon {
+  background: var(--study-green);
+}
+
+.upNextText {
+  flex: 1 1 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.upNextLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #a95b12;
+}
+
+.upNextName {
+  font-weight: 700;
+  color: var(--study-navy);
+}
+
+.filterBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0.85rem;
+}
+
+.filterChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid var(--study-border);
+  background: #fff;
+  color: var(--study-navy);
+  border-radius: 999px;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.filterChip:hover {
+  border-color: var(--study-orange);
+}
+
+.filterChip:focus-visible {
+  outline: 2px solid var(--study-orange);
+  outline-offset: 2px;
+}
+
+.filterChipActive,
+.filterChipActive:hover {
+  background: var(--study-navy);
+  border-color: var(--study-navy);
+  color: #fff;
+}
+
+.filterCount {
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0 0.45rem;
+  background: #eef1f5;
+  color: var(--study-muted);
+}
+
+.filterChipActive .filterCount {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+.lessonCards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.lessonCard {
+  background: #fff;
+  border: 1px solid var(--study-border);
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
+  display: grid;
+  gap: 0.85rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.lessonCard:hover {
+  border-color: #f0c090;
+  box-shadow: 0 6px 16px rgba(0, 35, 65, 0.06);
+}
+
+.lessonCardLocked {
+  background: #fafbfc;
+}
+
+.lessonCardLocked .lessonCardTitle,
+.lessonCardLocked .lessonCardDesc {
+  opacity: 0.75;
+}
+
+.lessonCardMain {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+}
+
+.lessonCardBody {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.lessonCardHead {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.6rem;
+}
+
+.lessonCardTitle {
+  font-weight: 700;
+  font-size: 1.02rem;
+  color: var(--study-navy);
+  text-decoration: none;
+}
+
+.lessonCardTitle:hover {
+  color: var(--study-orange);
+}
+
+.lessonCardTitle:focus-visible {
+  outline: 2px solid var(--study-orange);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.lessonCardDesc {
+  margin: 0.3rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--study-muted);
+}
+
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.statusLocked,
+.statusNew {
+  background: #eef1f5;
+  color: var(--study-muted);
+}
+
+.statusStarted {
+  background: #e7eef6;
+  color: var(--study-navy-soft);
+}
+
+.statusNeedsWork {
+  background: var(--study-orange-soft);
+  color: #a95b12;
+}
+
+.statusPassed {
+  background: var(--study-green-soft);
+  color: var(--study-green);
+}
+
+.lessonFacts {
+  list-style: none;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  font-size: 0.82rem;
+  color: var(--study-muted);
+}
+
+.lessonFacts li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.lessonFacts .miniMeter {
+  width: 48px;
+}
+
+.lessonScore {
+  flex: 0 0 150px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.lessonScoreLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--study-muted);
+}
+
+.lessonScoreMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--study-muted);
+}
+
+.trendUp,
+.trendDown {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 700;
+}
+
+.trendUp {
+  color: var(--study-green);
+}
+
+.trendDown {
+  color: var(--study-red);
+}
+
+.lessonActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #eef1f5;
+}
+
+.lessonActions .btnGhost {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 575.98px) {
+  .lessonCardMain {
+    flex-wrap: wrap;
+  }
+
+  .lessonCardBody {
+    flex-basis: calc(100% - 3.1rem);
+  }
+
+  .lessonScore {
+    flex: 1 1 100%;
+    padding-left: 3.1rem;
+  }
+
+  .lessonActions .btnGhost {
+    flex: 1 1 calc(50% - 0.45rem);
+  }
+}

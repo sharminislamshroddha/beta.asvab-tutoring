@@ -71,6 +71,19 @@ export type StudyLessonListItem = {
   order: number;
 };
 
+/** Per-lesson progress for the "All lessons" page (student-category-progress). */
+export type LessonProgress = {
+  lesson_id: number;
+  homework_total: number;
+  homework_viewed: number;
+  homework_bookmarked: number;
+  practice_total: number;
+  attempts: number;
+  best_score: number | null;
+  previous_score: number | null;
+  latest: { result_id: number; score: number; correct: number; total: number; date: string } | null;
+};
+
 export type StudyVideo = { title: string; url: string; youtubeId: string | null };
 
 export type StudyLessonOverview = {
@@ -305,6 +318,35 @@ export function normalizeLessonList(json: unknown): StudyLessonListItem[] {
       locked: num(row.paid) === 1,
       order: num(row.lesson_order),
     }))
+    .filter((l) => l.lesson_id > 0);
+}
+
+export function normalizeCategoryProgress(json: unknown): LessonProgress[] {
+  const optional = (value: unknown) => (value === null || value === undefined ? null : num(value));
+  return toArray(asRecord(asRecord(json).data).lessons)
+    .map(asRecord)
+    .map((row) => {
+      const latest = asRecord(row.latest);
+      return {
+        lesson_id: num(row.lesson_id),
+        homework_total: num(row.homework_total),
+        homework_viewed: num(row.homework_viewed),
+        homework_bookmarked: num(row.homework_bookmarked),
+        practice_total: num(row.practice_total),
+        attempts: num(row.attempts),
+        best_score: optional(row.best_score),
+        previous_score: optional(row.previous_score),
+        latest: latest.result_id
+          ? {
+              result_id: num(latest.result_id),
+              score: num(latest.score),
+              correct: num(latest.correct),
+              total: num(latest.total),
+              date: str(latest.date),
+            }
+          : null,
+      };
+    })
     .filter((l) => l.lesson_id > 0);
 }
 

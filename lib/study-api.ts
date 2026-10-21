@@ -5,6 +5,7 @@ import { getSession } from "@/lib/auth-session";
 import { parsePhpJsonText } from "@/lib/php-json";
 import {
   asRecord,
+  normalizeCategoryProgress,
   normalizeFlashcards,
   normalizeLessonList,
   normalizeLessonOverview,
@@ -16,6 +17,7 @@ import {
   num,
   str,
   type Flashcard,
+  type LessonProgress,
   type PracticeReport,
   type PredictionReport,
   type PredictionReview,
@@ -32,6 +34,7 @@ import {
 /** Actions of the PHP "STUDENT PORTAL API" section (asvab-api.php). */
 export const STUDY_ACTIONS = new Set([
   "student-dashboard",
+  "student-category-progress",
   "student-lesson-study",
   "student-homework-state",
   "student-homework-bookmark",
@@ -193,6 +196,10 @@ export const getStudyDashboard = cache(async (): Promise<StudyResult<StudyDashbo
 
 export async function getStudyLessons(catId: number): Promise<StudyResult<StudyLessonListItem[]>> {
   return mapResult(await callStudyAction("student-lessons", { cat_id: catId }), normalizeLessonList);
+}
+
+export async function getStudyCategoryProgress(catId: number): Promise<StudyResult<LessonProgress[]>> {
+  return mapResult(await callStudyAction("student-category-progress", { cat_id: catId }), normalizeCategoryProgress);
 }
 
 export async function getStudyLessonOverview(

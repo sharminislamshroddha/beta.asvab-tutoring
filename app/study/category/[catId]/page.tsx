@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { StudyNotice, StudyPageHeader, ScoreBar } from "@/components/study/StudyUi";
+import CategoryLessons, { type CategoryLesson } from "@/components/study/CategoryLessons";
+import { StudyNotice, StudyPageHeader } from "@/components/study/StudyUi";
 import styles from "@/components/study/study.module.css";
-import { getStudyDashboard, getStudyLessons, getStudyProgressReport } from "@/lib/study-api";
+import { getStudyCategoryProgress, getStudyDashboard, getStudyLessons } from "@/lib/study-api";
 
 export default async function StudyCategoryPage({ params }: { params: Promise<{ catId: string }> }) {
   const { catId: rawCatId } = await params;
@@ -13,7 +13,7 @@ export default async function StudyCategoryPage({ params }: { params: Promise<{ 
   const category = dashboard.ok ? dashboard.data.categories.find((c) => c.cat_id === catId) : undefined;
   if (category?.is_flashcard) redirect(`/study/flashcards/${catId}`);
 
-  const [lessons, progress] = await Promise.all([getStudyLessons(catId), getStudyProgressReport()]);
+  const [lessons, progress] = await Promise.all([getStudyLessons(catId), getStudyCategoryProgress(catId)]);
 
   const title = category?.name || "Lessons";
   const crumbs = [{ label: "Dashboard", href: "/study" }, { label: title }];
@@ -27,77 +27,34 @@ export default async function StudyCategoryPage({ params }: { params: Promise<{ 
     );
   }
 
-  const latestScore = new Map<number, number>();
-  if (progress.ok) {
-    for (const row of progress.data.lessons) {
-      if (row.cat_id === catId) latestScore.set(row.lesson_id, row.score);
-    }
-  }
-  const sorted = [...lessons.data].sort((a, b) => a.order - b.order);
-  const completed = sorted.filter((l) => latestScore.has(l.lesson_id)).length;
+  const descriptions = new Map((category?.lessons ?? []).map((l) => [l.lesson_id, l.description]));
+  const progressById = new Map((progress.ok ? progress.data : []).map((p) => [p.lesson_id, p]));
+  const items: CategoryLesson[] = [...lessons.data]
+    .sort((a, b) => a.order - b.order)
+    .map((lesson, i) => ({
+      lesson_id: lesson.lesson_id,
+      number: i + 1,
+      name: lesson.lesson_name,
+      description: descriptions.get(lesson.lesson_id) ?? "",
+      locked: lesson.locked,
+      progress: progressById.get(lesson.lesson_id) ?? null,
+    }));
 
   return (
     <>
       <StudyPageHeader
         title={title}
-        subtitle={`${sorted.length} ${sorted.length === 1 ? "lesson" : "lessons"} · ${completed} tested`}
+        subtitle={`${items.length} ${items.length === 1 ? "lesson" : "lessons"} · study, homework and a practice test in each`}
         crumbs={crumbs}
       />
 
-      {sorted.length === 0 ? (
+      {items.length === 0 ? (
         <div className={`${styles.card} ${styles.emptyState}`}>
           <i className="bi bi-journal" aria-hidden="true" />
           No lessons have been published in this topic yet.
         </div>
       ) : (
-        <ol className={styles.lessonList} aria-label={`${title} lessons`}>
-          {sorted.map((lesson, i) => {
-            const score = latestScore.get(lesson.lesson_id);
-            const body = (
-              <>
-                <span className={styles.lessonNumber} aria-hidden="true">
-                  {lesson.locked ? <i className="bi bi-lock" /> : i + 1}
-                </span>
-                <span className="flex-grow-1" style={{ minWidth: 0 }}>
-                  <span className={`${styles.tileName} d-block`}>{lesson.lesson_name}</span>
-                  <span className={`${styles.tileMeta} d-block`}>
-                    {lesson.locked
-                      ? "Included with the full course"
-                      : score === undefined
-                        ? "Study, homework and practice test"
-                        : "Latest practice test score"}
-                  </span>
-                </span>
-                {lesson.locked ? (
-                  <span className={`${styles.badge} ${styles.badgeLocked}`}>Locked</span>
-                ) : score !== undefined ? (
-                  <span style={{ width: 130 }}>
-                    <ScoreBar score={score} />
-                  </span>
-                ) : (
-                  <i className={`bi bi-chevron-right ${styles.tileChevron}`} aria-hidden="true" />
-                )}
-              </>
-            );
-            return (
-              <li key={lesson.lesson_id}>
-                {lesson.locked ? (
-                  <Link
-                    href="/subscribe-again"
-                    className={`${styles.lessonRow} ${styles.lessonRowLocked}`}
-                    aria-label={`${lesson.lesson_name} (locked, renew to unlock)`}
-                  >
-                    {body}
-                  </Link>
-                ) : (
-                  <Link href={`/study/lesson/${catId}/${lesson.lesson_id}`} className={styles.lessonRow}>
-                    {body}
-                  </Link>
-                )}
-              </li>
-            );
-          })}
-        </ol>
+        <CategoryLessons catId={catId} lessons={items} />
       )}
     </>
   );
