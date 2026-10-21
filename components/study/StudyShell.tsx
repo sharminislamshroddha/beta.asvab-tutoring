@@ -206,7 +206,6 @@ export default function StudyShell({
                         lesson.locked ? styles.lessonNavLocked : ""
                       }`}
                       aria-current={active ? "page" : undefined}
-                      title={lesson.description ? `${lesson.name}: ${lesson.description}` : lesson.name}
                     >
                       <span className={styles.lessonNavIndex} aria-hidden="true">
                         {lesson.locked ? <i className="bi bi-lock-fill" /> : i + 1}
