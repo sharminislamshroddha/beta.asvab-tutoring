@@ -48,14 +48,46 @@
   overflow: hidden;
 }
 
+/* Desktop: the sidebar fits the screen; the course header stays put
+   and only the menu below it scrolls */
 @media (min-width: 992px) {
   .sidebar {
     position: sticky;
     top: 1rem;
-    max-height: calc(100vh - 2rem);
-    overflow-x: hidden;
+    height: calc(100vh - 2rem);
+    height: calc(100dvh - 2rem);
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+  }
+
+  .sidebar .sidebarCourse {
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 1rem 1rem 0.9rem;
+    box-shadow: 0 6px 10px -10px rgba(0, 35, 65, 0.35);
+    position: relative;
+    z-index: 1;
+  }
+
+  .sidebar .navPanel {
+    flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    padding: 0.5rem 0.6rem 1rem;
     scrollbar-width: thin;
+    scrollbar-color: #cfd8e3 transparent;
+  }
+
+  .sidebar .navPanel::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .sidebar .navPanel::-webkit-scrollbar-thumb {
+    background: #cfd8e3;
+    border-radius: 999px;
   }
 }
 

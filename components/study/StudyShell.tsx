@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Script from "next/script";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { StudyCategory, StudyDashboard } from "@/lib/study-types";
 import { typesetMathJax } from "@/utils/mathjax";
 import styles from "./study.module.css";
@@ -41,6 +41,7 @@ export default function StudyShell({
   const currentLessonId = activeLessonId(pathname);
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
   const [expanded, setExpanded] = useState<Set<number>>(
     () => new Set(activeCategory ? [activeCategory.cat_id] : []),
   );
@@ -52,6 +53,21 @@ export default function StudyShell({
       setExpanded((prev) => (prev.has(activeCategory.cat_id) ? prev : new Set(prev).add(activeCategory.cat_id)));
     }
   }, [pathname, activeCategory]);
+
+  // Keep the current page in view inside the scrolling menu (after a topic finishes opening)
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      const nav = navRef.current;
+      const current = nav?.querySelector<HTMLElement>('[aria-current="page"]');
+      if (!nav || !current) return;
+      const navBox = nav.getBoundingClientRect();
+      const itemBox = current.getBoundingClientRect();
+      if (itemBox.top < navBox.top || itemBox.bottom > navBox.bottom) {
+        nav.scrollTop += itemBox.top - navBox.top - navBox.height / 3;
+      }
+    }, 260);
+    return () => window.clearTimeout(id);
+  }, [pathname]);
 
   const toggleCategory = (catId: number) =>
     setExpanded((prev) => {
@@ -238,7 +254,7 @@ export default function StudyShell({
               <i className={`bi ${menuOpen ? "bi-chevron-up" : "bi-chevron-down"}`} aria-hidden="true" />
             </button>
 
-            <nav id="study-nav-panel" className={`${styles.navPanel} ${menuOpen ? styles.navPanelOpen : ""}`}>
+            <nav ref={navRef} id="study-nav-panel" className={`${styles.navPanel} ${menuOpen ? styles.navPanelOpen : ""}`}>
               <ul className={styles.navList}>
                 <li>{renderLink({ href: "/study", label: "Dashboard", icon: "bi-grid-1x2", match: (p) => p === "/study" })}</li>
                 {categories.length > 0 && (
