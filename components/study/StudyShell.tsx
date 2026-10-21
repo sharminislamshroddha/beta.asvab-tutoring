@@ -3,15 +3,29 @@
 import Link from "next/link";
 import Script from "next/script";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
-import type { StudyDashboard } from "@/lib/study-types";
+import { useEffect, useState, type ReactNode } from "react";
+import type { StudyCategory, StudyDashboard } from "@/lib/study-types";
 import { typesetMathJax } from "@/utils/mathjax";
 import styles from "./study.module.css";
 
 type NavItem = { href: string; label: string; icon: string; match: (path: string) => boolean };
 
-function categoryHref(cat: StudyDashboard["categories"][number]) {
+function categoryHref(cat: StudyCategory) {
   return cat.is_flashcard ? `/study/flashcards/${cat.cat_id}` : `/study/category/${cat.cat_id}`;
+}
+
+function isCategoryPath(cat: StudyCategory, path: string) {
+  return (
+    path.startsWith(categoryHref(cat)) ||
+    path.startsWith(`/study/lesson/${cat.cat_id}/`) ||
+    path.startsWith(`/study/practice/${cat.cat_id}/`)
+  );
+}
+
+/** Lesson id in /study/lesson/:cat/:lesson or /study/practice/:cat/:lesson... */
+function activeLessonId(path: string): number | null {
+  const match = path.match(/^\/study\/(?:lesson|practice)\/\d+\/(\d+)/);
+  return match ? Number(match[1]) : null;
 }
 
 export default function StudyShell({
@@ -22,22 +36,31 @@ export default function StudyShell({
   children: ReactNode;
 }) {
   const pathname = usePathname() || "/study";
+  const categories = dashboard?.categories ?? [];
+  const activeCategory = categories.find((cat) => isCategoryPath(cat, pathname));
+  const currentLessonId = activeLessonId(pathname);
 
-  const items: NavItem[] = [
-    { href: "/study", label: "Dashboard", icon: "bi-grid-1x2", match: (p) => p === "/study" },
-  ];
-  const categoryItems: NavItem[] = (dashboard?.categories ?? []).map((cat) => {
-    const href = categoryHref(cat);
-    return {
-      href,
-      label: cat.name,
-      icon: cat.is_flashcard ? "bi-stack" : "bi-journal-text",
-      match: (p) =>
-        p.startsWith(href) ||
-        p.startsWith(`/study/lesson/${cat.cat_id}/`) ||
-        p.startsWith(`/study/practice/${cat.cat_id}/`),
-    };
-  });
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [expanded, setExpanded] = useState<Set<number>>(
+    () => new Set(activeCategory ? [activeCategory.cat_id] : []),
+  );
+
+  // Follow navigation: open the current topic, close the phone menu
+  useEffect(() => {
+    setMenuOpen(false);
+    if (activeCategory) {
+      setExpanded((prev) => (prev.has(activeCategory.cat_id) ? prev : new Set(prev).add(activeCategory.cat_id)));
+    }
+  }, [pathname, activeCategory]);
+
+  const toggleCategory = (catId: number) =>
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(catId)) next.delete(catId);
+      else next.add(catId);
+      return next;
+    });
+
   const toolItems: NavItem[] = [];
   if ((dashboard?.prediction_tests.length ?? 0) > 0) {
     toolItems.push({
@@ -54,18 +77,78 @@ export default function StudyShell({
     match: (p) => p.startsWith("/study/progress"),
   });
 
-  const renderItem = (item: NavItem) => {
+  const renderLink = (item: NavItem) => {
     const active = item.match(pathname);
     return (
-      <li key={item.href}>
-        <Link
-          href={item.href}
-          className={`${styles.navLink} ${active ? styles.navLinkActive : ""}`}
-          aria-current={active ? "page" : undefined}
-        >
-          <i className={`bi ${item.icon}`} aria-hidden="true" />
-          <span>{item.label}</span>
-        </Link>
+      <Link
+        href={item.href}
+        className={`${styles.navLink} ${active ? styles.navLinkActive : ""}`}
+        aria-current={active ? "page" : undefined}
+      >
+        <i className={`bi ${item.icon}`} aria-hidden="true" />
+        <span>{item.label}</span>
+      </Link>
+    );
+  };
+
+  const renderCategory = (cat: StudyCategory) => {
+    const href = categoryHref(cat);
+    const link = renderLink({
+      href,
+      label: cat.name,
+      icon: cat.is_flashcard ? "bi-stack" : "bi-journal-text",
+      // The topic stays highlighted only on its own page; on a lesson the lesson is highlighted
+      match: (p) => p.startsWith(href) || (isCategoryPath(cat, p) && currentLessonId === null),
+    });
+    const lessons = cat.lessons ?? [];
+
+    if (cat.is_flashcard || lessons.length === 0) {
+      return <li key={cat.cat_id}>{link}</li>;
+    }
+
+    const isOpen = expanded.has(cat.cat_id);
+    const listId = `study-nav-lessons-${cat.cat_id}`;
+
+    return (
+      <li key={cat.cat_id}>
+        <div className={styles.navCategory}>
+          {link}
+          <button
+            type="button"
+            className={`${styles.navToggle} ${isOpen ? styles.navToggleOpen : ""}`}
+            aria-expanded={isOpen}
+            aria-controls={listId}
+            aria-label={`${isOpen ? "Hide" : "Show"} ${cat.name} lessons`}
+            onClick={() => toggleCategory(cat.cat_id)}
+          >
+            <i className="bi bi-chevron-down" aria-hidden="true" />
+          </button>
+        </div>
+        {isOpen && (
+          <ul id={listId} className={styles.lessonNav} aria-label={`${cat.name} lessons`}>
+            {lessons.map((lesson) => {
+              const active = !lesson.locked && isCategoryPath(cat, pathname) && currentLessonId === lesson.lesson_id;
+              return (
+                <li key={lesson.lesson_id}>
+                  <Link
+                    href={lesson.locked ? "/subscribe-again" : `/study/lesson/${cat.cat_id}/${lesson.lesson_id}`}
+                    className={`${styles.lessonNavLink} ${active ? styles.lessonNavActive : ""} ${
+                      lesson.locked ? styles.lessonNavLocked : ""
+                    }`}
+                    aria-current={active ? "page" : undefined}
+                    title={lesson.description ? `${lesson.name}: ${lesson.description}` : lesson.name}
+                  >
+                    <span className={styles.lessonNavName}>
+                      {lesson.locked && <i className="bi bi-lock" aria-label="Locked" />}
+                      {lesson.name}
+                    </span>
+                    {lesson.description && <span className={styles.lessonNavDesc}>{lesson.description}</span>}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </li>
     );
   };
@@ -106,19 +189,38 @@ export default function StudyShell({
                 </div>
               </div>
             )}
-            <ul className={styles.navList}>
-              {items.map(renderItem)}
-              {categoryItems.length > 0 && (
+
+            <button
+              type="button"
+              className={styles.menuToggle}
+              aria-expanded={menuOpen}
+              aria-controls="study-nav-panel"
+              onClick={() => setMenuOpen((open) => !open)}
+            >
+              <span>
+                <i className="bi bi-list me-2" aria-hidden="true" />
+                Course menu
+              </span>
+              <i className={`bi ${menuOpen ? "bi-chevron-up" : "bi-chevron-down"}`} aria-hidden="true" />
+            </button>
+
+            <nav id="study-nav-panel" className={`${styles.navPanel} ${menuOpen ? styles.navPanelOpen : ""}`}>
+              <ul className={styles.navList}>
+                <li>{renderLink({ href: "/study", label: "Dashboard", icon: "bi-grid-1x2", match: (p) => p === "/study" })}</li>
+                {categories.length > 0 && (
+                  <li className={styles.navGroupLabel} aria-hidden="true">
+                    Course content
+                  </li>
+                )}
+                {categories.map(renderCategory)}
                 <li className={styles.navGroupLabel} aria-hidden="true">
-                  Course content
+                  Tests &amp; results
                 </li>
-              )}
-              {categoryItems.map(renderItem)}
-              <li className={styles.navGroupLabel} aria-hidden="true">
-                Tests &amp; results
-              </li>
-              {toolItems.map(renderItem)}
-            </ul>
+                {toolItems.map((item) => (
+                  <li key={item.href}>{renderLink(item)}</li>
+                ))}
+              </ul>
+            </nav>
           </aside>
           <main className={styles.main} id="study-main">
             {children}

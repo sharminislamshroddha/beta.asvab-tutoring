@@ -18,6 +18,15 @@ export type StudyResult<T> =
   | { ok: true; data: T }
   | { ok: false; status: number; code: StudyErrorCode; message: string };
 
+export type StudySidebarLesson = {
+  lesson_id: number;
+  name: string;
+  /** Short lesson description (Lesson_title) */
+  description: string;
+  is_free: boolean;
+  locked: boolean;
+};
+
 export type StudyCategory = {
   cat_id: number;
   name: string;
@@ -25,6 +34,7 @@ export type StudyCategory = {
   is_free: boolean;
   is_flashcard: boolean;
   lesson_total: number;
+  lessons?: StudySidebarLesson[];
 };
 
 export type StudyPredictionTest = {
