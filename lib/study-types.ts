@@ -345,7 +345,11 @@ export type StudyAccount = {
   states: StudyPlace[];
   cities: StudyPlace[];
   subscription: {
+    course_id: number;
     course_name: string;
+    /** Bought a tutoring package (subscription.session_id) */
+    has_tutoring_package: boolean;
+    has_subscription: boolean;
     is_active: boolean;
     start_date: string;
     expire_date: string;

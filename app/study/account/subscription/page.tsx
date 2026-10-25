@@ -3,8 +3,9 @@ import AccountTabs from "@/components/study/account/AccountTabs";
 import SubscriptionActions from "@/components/study/account/SubscriptionActions";
 import { StudyNotice, StudyPageHeader } from "@/components/study/StudyUi";
 import styles from "@/components/study/study.module.css";
+import { fetchPricingPackages, type PricingPackageItem } from "@/lib/php-api";
 import { getStudyAccount } from "@/lib/study-api";
-import { formatStudyDate } from "@/lib/study-types";
+import { formatStudyDate, type StudyAccount } from "@/lib/study-types";
 
 export const metadata = { title: "Subscription" };
 
@@ -17,7 +18,7 @@ function toDate(value: string) {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-function money(amount: number, currency: string) {
+function money(amount: number, currency = "USD") {
   if (!amount) return "";
   try {
     return new Intl.NumberFormat("en-US", {
@@ -29,8 +30,89 @@ function money(amount: number, currency: string) {
   }
 }
 
+/** The pricing list entry for the student's course (ASVAB when it can't be matched). */
+function packageFor(
+  list: PricingPackageItem[],
+  sub: StudyAccount["subscription"],
+) {
+  const name = sub.course_name.trim().toLowerCase();
+  return (
+    list.find((p) => Number(p.course_id) === sub.course_id) ||
+    list.find(
+      (p) =>
+        p.name.trim().toLowerCase() === name ||
+        p.course_code.toLowerCase() === name,
+    ) ||
+    list.find((p) => p.course_code.toLowerCase() === "asvab") ||
+    null
+  );
+}
+
+/** "$15.00 - $45.00" -> "$15.00" */
+function startingPrice(item: PricingPackageItem | null) {
+  const match = item?.price_range?.match(/\$?\s*([\d,]+(?:\.\d+)?)/);
+  return match ? money(Number(match[1].replace(/,/g, ""))) : "";
+}
+
+type Tone = "good" | "warn" | "bad" | "neutral";
+type View = {
+  status: string;
+  tone: Tone;
+  info?: string;
+  /** "subscription" plans show their dates and auto-renewal */
+  kind: "subscription" | "tutoring" | "free" | "app";
+};
+
+/** Status, message and buttons for each kind of student (see the spec in the task). */
+function viewFor(sub: StudyAccount["subscription"]): View {
+  if (sub.from_app) {
+    return {
+      kind: "app",
+      status: sub.is_active ? "Active" : "Expired",
+      tone: sub.is_active ? "good" : "bad",
+    };
+  }
+  const square = sub.square;
+  if (square) {
+    const status = square.status.toUpperCase();
+    const pending = /PENDING|REQUESTED/i.test(square.cancel_status || "");
+    if (status === "ACTIVE" && sub.is_active) {
+      return pending
+        ? { kind: "subscription", status: "Cancel scheduled", tone: "warn" }
+        : { kind: "subscription", status: "Active", tone: "good" };
+    }
+    if (status === "ACTIVE") {
+      return {
+        kind: "subscription",
+        status: "Expired",
+        tone: "bad",
+        info: "Please pay for your subscription and continue studying.",
+      };
+    }
+    if (status === "CANCELED" || status === "CANCELLED") {
+      return { kind: "subscription", status: "Canceled", tone: "bad" };
+    }
+    return { kind: "subscription", status: "Expired", tone: "bad" };
+  }
+  if (sub.is_active) return { kind: "tutoring", status: "Free", tone: "good" };
+  if (sub.has_tutoring_package)
+    return { kind: "tutoring", status: "Expired", tone: "bad" };
+  return {
+    kind: "free",
+    status:
+      sub.has_subscription && sub.course_id
+        ? "Not activated"
+        : "Not subscribed",
+    tone: "neutral",
+  };
+}
+
 export default async function StudySubscriptionPage() {
-  const account = await getStudyAccount();
+  const [account, selfStudy, tutoring] = await Promise.all([
+    getStudyAccount(),
+    fetchPricingPackages("subscribe").catch(() => []),
+    fetchPricingPackages("one").catch(() => []),
+  ]);
   const crumbs = [
     { label: "Dashboard", href: "/study" },
     { label: "My account" },
@@ -56,6 +138,20 @@ export default async function StudySubscriptionPage() {
   }
 
   const sub = account.data.subscription;
+  const view = viewFor(sub);
+  const square = sub.square;
+  const cancelPending =
+    !!square && /PENDING|REQUESTED/i.test(square.cancel_status || "");
+  const squareStatus = (square?.status || "").toUpperCase();
+
+  const selfStudyPkg = packageFor(selfStudy, sub);
+  const tutoringPkg = packageFor(tutoring, sub);
+  const courseCode = (selfStudyPkg || tutoringPkg)?.course_code || "asvab";
+  const selfStudyFrom = startingPrice(selfStudyPkg) || "$15.00";
+  const tutoringFrom = startingPrice(tutoringPkg);
+  const selfStudyDetails = `/package-details/self-study/${courseCode}`;
+  const tutoringDetails = `/package-details/1-on-1-tutoring/${courseCode}`;
+
   const start = toDate(sub.start_date);
   const expire = toDate(sub.expire_date);
   const today = new Date();
@@ -74,27 +170,82 @@ export default async function StudySubscriptionPage() {
           Math.max(0, Math.round(((totalDays - daysLeft) / totalDays) * 100)),
         )
       : null;
+  const showTimeLeft =
+    view.kind !== "free" && sub.is_active && expire && daysLeft !== null;
 
-  const square = sub.square;
-  const squareStatus = (square?.status || "").toUpperCase();
-  const cancelPending =
-    !!square && /PENDING|REQUESTED/i.test(square.cancel_status || "");
-  const squareEnded = ["CANCELED", "CANCELLED", "ENDED", "EXPIRED"].includes(
-    squareStatus,
+  const details: { label: string; value: string }[] = [];
+  if (view.kind !== "free") {
+    details.push({ label: "Course", value: sub.course_name || "—" });
+    if (start)
+      details.push({
+        label: "Started",
+        value: formatStudyDate(sub.start_date),
+      });
+    if (expire)
+      details.push({
+        label: sub.is_active ? "Access until" : "Ended on",
+        value: formatStudyDate(sub.expire_date),
+      });
+    if (square?.next_billing_date && view.status === "Active") {
+      details.push({
+        label: "Next billing date",
+        value: formatStudyDate(square.next_billing_date),
+      });
+    }
+    if (cancelPending && square?.cancel_effective_date) {
+      details.push({
+        label: "Cancels on",
+        value: formatStudyDate(square.cancel_effective_date),
+      });
+    }
+    if (sub.payment_mode)
+      details.push({ label: "Payment method", value: sub.payment_mode });
+    const paid = money(sub.amount, sub.currency);
+    if (paid) details.push({ label: "Amount paid", value: paid });
+  }
+
+  const toneClass = {
+    good: styles.statusPassed,
+    warn: styles.statusNeedsWork,
+    bad: styles.statusFailed,
+    neutral: styles.statusNew,
+  }[view.tone];
+  const toneIcon = {
+    good: "bi-check-circle-fill",
+    warn: "bi-hourglass-split",
+    bad: "bi-x-circle-fill",
+    neutral: "bi-dash-circle",
+  }[view.tone];
+  const userType =
+    view.kind === "tutoring"
+      ? "Tutoring"
+      : view.kind === "free"
+        ? "Free account"
+        : "Subscription";
+
+  /** Button + "Start from" + package details link */
+  const offer = (
+    button: { href: string; label: string; icon: string },
+    from: string,
+    detailsHref: string,
+  ) => (
+    <div className={styles.offer}>
+      <Link href={button.href} className={styles.btnPrimary}>
+        <i className={`bi ${button.icon}`} aria-hidden="true" /> {button.label}
+      </Link>
+      <div className={styles.offerText}>
+        {from && (
+          <span>
+            Start from <strong>{from}</strong>
+          </span>
+        )}
+        <Link href={detailsHref} className={styles.offerLink}>
+          See the package details{" "}
+          <i className="bi bi-arrow-right" aria-hidden="true" />
+        </Link>
+      </div>
+    </div>
   );
-
-  const details: { label: string; value: string }[] = [
-    { label: "Course", value: sub.course_name || "—" },
-    { label: "Started", value: start ? formatStudyDate(sub.start_date) : "—" },
-    {
-      label: sub.is_active ? "Access until" : "Expired on",
-      value: expire ? formatStudyDate(sub.expire_date) : "—",
-    },
-  ];
-  if (sub.payment_mode)
-    details.push({ label: "Payment method", value: sub.payment_mode });
-  const paid = money(sub.amount, sub.currency);
-  if (paid) details.push({ label: "Amount paid", value: paid });
 
   return (
     <>
@@ -106,29 +257,30 @@ export default async function StudySubscriptionPage() {
       >
         <div className={styles.planHead}>
           <span className={styles.planIcon} aria-hidden="true">
-            <i className="bi bi-mortarboard" />
+            <i
+              className={`bi ${view.kind === "tutoring" ? "bi-person-video3" : "bi-mortarboard"}`}
+            />
           </span>
           <div className={styles.planHeadText}>
+            <span className={styles.planType}>{userType}</span>
             <h2 id="plan-title" className={styles.planTitle}>
-              {sub.course_name || "Your course"}
+              {view.kind === "free"
+                ? "No active plan"
+                : sub.course_name || "Your course"}
             </h2>
-            <span
-              className={`${styles.statusPill} ${sub.is_active ? styles.statusPassed : styles.statusNeedsWork}`}
-            >
-              <i
-                className={`bi ${sub.is_active ? "bi-check-circle-fill" : "bi-exclamation-circle"}`}
-                aria-hidden="true"
-              />{" "}
-              {sub.is_active ? "Active" : "Expired"}
-            </span>
           </div>
+          <span
+            className={`${styles.statusPill} ${styles.planStatus} ${toneClass}`}
+          >
+            <i className={`bi ${toneIcon}`} aria-hidden="true" /> {view.status}
+          </span>
         </div>
 
-        {expire && sub.is_active && daysLeft !== null && (
+        {showTimeLeft && (
           <div className={styles.planTime}>
             <div className={styles.planTimeLabel}>
               <strong>
-                {daysLeft <= 0
+                {daysLeft! <= 0
                   ? "Ends today"
                   : `${daysLeft} ${daysLeft === 1 ? "day" : "days"} left`}
               </strong>
@@ -142,97 +294,161 @@ export default async function StudySubscriptionPage() {
           </div>
         )}
 
-        <dl className={styles.planDetails}>
-          {details.map((d) => (
-            <div key={d.label}>
-              <dt>{d.label}</dt>
-              <dd>{d.value}</dd>
-            </div>
-          ))}
-        </dl>
+        {details.length > 0 && (
+          <dl className={styles.planDetails}>
+            {details.map((d) => (
+              <div key={d.label}>
+                <dt>{d.label}</dt>
+                <dd>{d.value}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
 
-        {!sub.is_active && (
+        {view.info && (
           <div
-            className={`${styles.inlineAlert} ${styles.inlineAlertWarn} mb-0`}
+            className={`${styles.inlineAlert} ${styles.inlineAlertWarn} ${styles.planInfo}`}
           >
             <i className="bi bi-info-circle" aria-hidden="true" />
+            <span>{view.info}</span>
+          </div>
+        )}
+
+        {/* ---- Actions per status ---- */}
+        {view.kind === "subscription" && view.status === "Active" && (
+          <div className={styles.renewalActions}>
+            <SubscriptionActions
+              mode="cancel"
+              accessUntil={
+                square?.next_billing_date
+                  ? formatStudyDate(square.next_billing_date)
+                  : expire
+                    ? formatStudyDate(sub.expire_date)
+                    : ""
+              }
+            />
+          </div>
+        )}
+        {view.kind === "subscription" && view.status === "Cancel scheduled" && (
+          <div className={styles.renewalActions}>
+            <SubscriptionActions mode="resume" accessUntil="" />
+          </div>
+        )}
+        {view.kind === "subscription" &&
+          view.status === "Expired" &&
+          squareStatus !== "ACTIVE" && (
+            <div className={styles.renewalActions}>
+              {offer(
+                {
+                  href: "/subscribe-again",
+                  label: "Subscribe again",
+                  icon: "bi-arrow-repeat",
+                },
+                selfStudyFrom,
+                selfStudyDetails,
+              )}
+            </div>
+          )}
+        {view.kind === "subscription" && view.status === "Canceled" && (
+          <div className={styles.renewalActions}>
+            {offer(
+              {
+                href: "/subscribe-again",
+                label: "Subscribe again",
+                icon: "bi-arrow-repeat",
+              },
+              "",
+              selfStudyDetails,
+            )}
+          </div>
+        )}
+        {view.kind === "tutoring" && (
+          <div className={styles.renewalActions}>
+            {offer(
+              {
+                href: "/buy-more-sessions",
+                label: "Buy more sessions",
+                icon: "bi-cart-plus",
+              },
+              tutoringFrom,
+              tutoringDetails,
+            )}
+          </div>
+        )}
+        {view.kind === "app" && (
+          <div
+            className={`${styles.inlineAlert} ${styles.inlineAlertInfo} ${styles.planInfo}`}
+          >
+            <i className="bi bi-phone" aria-hidden="true" />
             <span>
-              Your access has ended. Renew to unlock every lesson, flashcards
-              and unlimited prediction tests.
+              You subscribed in our mobile app. Manage billing in the App Store
+              or Google Play.
             </span>
           </div>
         )}
       </section>
 
-      {square && (
-        <section
-          className={`${styles.card} ${styles.accountCard}`}
-          aria-labelledby="renewal-title"
-        >
-          <h2 id="renewal-title" className={styles.formSectionTitle}>
-            Auto-renewal
-          </h2>
-          {cancelPending ? (
-            <p className={styles.renewalText}>
-              <i className="bi bi-hourglass-split" aria-hidden="true" /> Your
-              plan is set to cancel
-              {square.cancel_effective_date
-                ? ` on ${formatStudyDate(square.cancel_effective_date)}`
-                : ""}
-              . You keep access until then.
-            </p>
-          ) : squareEnded ? (
-            <p className={styles.renewalText}>
-              <i className="bi bi-pause-circle" aria-hidden="true" />{" "}
-              Auto-renewal is off.
-            </p>
-          ) : (
-            <p className={styles.renewalText}>
-              <i className="bi bi-arrow-repeat" aria-hidden="true" /> Your plan
-              renews
-              {square.next_billing_date
-                ? ` on ${formatStudyDate(square.next_billing_date)}`
-                : " automatically"}
-              {money(square.amount, square.currency)
-                ? ` for ${money(square.amount, square.currency)}`
-                : ""}
-              .
-            </p>
-          )}
-          {!squareEnded && (
-            <div className={styles.renewalActions}>
-              <SubscriptionActions
-                mode={cancelPending ? "resume" : "cancel"}
-                accessUntil={
-                  square.next_billing_date
-                    ? formatStudyDate(square.next_billing_date)
-                    : expire
-                      ? formatStudyDate(sub.expire_date)
-                      : ""
-                }
-              />
-            </div>
-          )}
-        </section>
-      )}
-
-      {sub.from_app && (
-        <div className={`${styles.inlineAlert} ${styles.inlineAlertInfo}`}>
-          <i className="bi bi-phone" aria-hidden="true" />
-          <span>
-            You subscribed in our mobile app. Manage billing in the App Store or
-            Google Play.
-          </span>
-        </div>
+      {view.kind === "free" && (
+        <>
+          <p className={styles.freeNotice}>
+            If you already paid for a tutor, please wait for your account
+            activation. If you need help, please{" "}
+            <Link href="/contact-us">contact us</Link>.
+          </p>
+          <div className={styles.freeOptions}>
+            <section
+              className={`${styles.card} ${styles.freeOption}`}
+              aria-labelledby="free-self-study"
+            >
+              <span className={styles.freeOptionIcon} aria-hidden="true">
+                <i className="bi bi-laptop" />
+              </span>
+              <h3 id="free-self-study" className={styles.freeOptionTitle}>
+                Self-study subscription
+              </h3>
+              <p className={styles.muted}>
+                Lessons, homework, practice tests and prediction tests, at your
+                own pace.
+              </p>
+              {offer(
+                {
+                  href: "/pricing/self-study",
+                  label: "Subscribe now",
+                  icon: "bi-bag-check",
+                },
+                selfStudyFrom,
+                selfStudyDetails,
+              )}
+            </section>
+            <section
+              className={`${styles.card} ${styles.freeOption}`}
+              aria-labelledby="free-tutoring"
+            >
+              <span className={styles.freeOptionIcon} aria-hidden="true">
+                <i className="bi bi-person-video3" />
+              </span>
+              <h3 id="free-tutoring" className={styles.freeOptionTitle}>
+                1-on-1 tutoring
+              </h3>
+              <p className={styles.muted}>
+                Live sessions with an expert tutor, plus full access to the
+                study area.
+              </p>
+              {offer(
+                {
+                  href: "/pricing/1-on-1-tutoring",
+                  label: "Buy a tutor package",
+                  icon: "bi-person-plus",
+                },
+                tutoringFrom,
+                tutoringDetails,
+              )}
+            </section>
+          </div>
+        </>
       )}
 
       <div className={styles.accountActions}>
-        {!sub.is_active && (
-          <Link href="/subscribe-again" className={styles.btnPrimary}>
-            <i className="bi bi-arrow-repeat" aria-hidden="true" /> Renew
-            subscription
-          </Link>
-        )}
         <Link href="/contact-us" className={styles.btnGhost}>
           <i className="bi bi-question-circle" aria-hidden="true" /> Questions
           about billing? Contact us

@@ -5,33 +5,63 @@
   display: inline-flex;
 }
 
+/* The menu button: avatar + first name + chevron (a pill on desktop) */
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 3px 0.75rem 3px 3px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.trigger:hover,
+.triggerOpen {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: #fff;
+}
+
+.trigger:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
 .avatar {
+  position: relative;
   display: grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
-  border: 2px solid transparent;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: #e58a34;
   color: #fff;
   font-weight: 800;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   letter-spacing: 0.02em;
-  cursor: pointer;
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
 }
 
-.avatar:hover,
-.avatarOpen {
-  border-color: #fff;
-  box-shadow: 0 0 0 3px rgba(229, 138, 52, 0.35);
+.triggerName {
+  max-width: 7.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  font-size: 0.95rem;
 }
 
-.avatar:focus-visible {
-  outline: 2px solid #fff;
-  outline-offset: 2px;
+.triggerChevron {
+  font-size: 0.75rem;
+  transition: transform 0.15s ease;
+}
+
+.triggerOpen .triggerChevron {
+  transform: rotate(180deg);
 }
 
 .backdrop {
@@ -177,10 +207,43 @@
 
 /* Phones / tablets: a bottom sheet */
 @media (max-width: 991.98px) {
+  /* Phones / tablets: just the avatar, with a small chevron badge */
+  .trigger {
+    position: relative;
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+
+  .trigger:hover,
+  .triggerOpen {
+    background: none;
+  }
+
+  .triggerName {
+    display: none;
+  }
+
+  .triggerChevron {
+    position: absolute;
+    right: -3px;
+    bottom: -3px;
+    display: grid;
+    place-items: center;
+    width: 17px;
+    height: 17px;
+    border: 2px solid #002341;
+    border-radius: 50%;
+    background: #fff;
+    color: #002341;
+    font-size: 0.5rem;
+    font-weight: 700;
+    -webkit-text-stroke: 0.6px #002341;
+  }
+
   .avatar {
     width: 38px;
     height: 38px;
-    font-size: 0.85rem;
   }
 
   .backdrop {

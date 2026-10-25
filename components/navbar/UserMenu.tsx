@@ -165,7 +165,7 @@ export default function UserMenu({
     <div className={styles.wrap} ref={wrapRef}>
       <button
         type="button"
-        className={`${styles.avatar} ${open ? styles.avatarOpen : ""}`}
+        className={`${styles.trigger} ${open ? styles.triggerOpen : ""}`}
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
@@ -173,7 +173,16 @@ export default function UserMenu({
         aria-label={`Account menu for ${fullName}`}
         title={fullName}
       >
-        {initials(user)}
+        <span className={styles.avatar} aria-hidden="true">
+          {initials(user)}
+        </span>
+        <span className={styles.triggerName} aria-hidden="true">
+          {(user.first_name || "").trim().split(/\s+/)[0] || "Account"}
+        </span>
+        <i
+          className={`bi bi-chevron-down ${styles.triggerChevron}`}
+          aria-hidden="true"
+        />
       </button>
 
       {open && (asSheet ? createPortal(menu, document.body) : menu)}

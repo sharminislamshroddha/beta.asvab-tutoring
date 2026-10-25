@@ -21,7 +21,7 @@ function numberSet(value: unknown): Set<number> {
 
 /**
  * Homework = self-check practice: pick an answer to see the correct one and
- * the explanation. Viewed questions and bookmarks are saved like the web portal.
+ * the explanation. Answered questions (homework_view) and bookmarks are saved.
  */
 export default function HomeworkPanel({
   catId,
@@ -93,17 +93,19 @@ export default function HomeworkPanel({
     return () => window.removeEventListener("keydown", onKey);
   }, [jumpOpen]);
 
-  // Record the view once per question (homework_view)
-  useEffect(() => {
-    if (!current || viewed.has(current.qid)) return;
-    setViewed((prev) => new Set(prev).add(current.qid));
+  // Showing the answer (button or picking an option) marks the question as
+  // answered: saved once per question (homework_view) and coloured in the lists
+  const reveal = (q: HomeworkQuestion) => {
+    setRevealed((prev) => new Set(prev).add(q.qid));
+    if (viewed.has(q.qid)) return;
+    setViewed((prev) => new Set(prev).add(q.qid));
     void studyRequest("student-homework-view", {
       cat_id: catId,
       lesson_id: lessonId,
-      question_id: current.qid,
-      ord: current.serial,
+      question_id: q.qid,
+      ord: q.serial,
     });
-  }, [current, viewed, catId, lessonId]);
+  };
 
   const go = useCallback(
     (next: number) => {
@@ -219,7 +221,7 @@ export default function HomeworkPanel({
             </button>
           </div>
           <span className={styles.hwViewed}>
-            Viewed {viewedCount}/{questions.length}
+            Answered {viewedCount}/{questions.length}
           </span>
           <div className={styles.jumpWrap}>
             <button
@@ -275,7 +277,7 @@ export default function HomeworkPanel({
                           setJumpOpen(false);
                         }}
                         aria-current={i === position ? "true" : undefined}
-                        aria-label={`Question ${q.serial || i + 1}${viewed.has(q.qid) ? ", viewed" : ""}${
+                        aria-label={`Question ${q.serial || i + 1}${viewed.has(q.qid) ? ", answered" : ""}${
                           bookmarked.has(q.qid) ? ", bookmarked" : ""
                         }`}
                       >
@@ -294,7 +296,7 @@ export default function HomeworkPanel({
                       <span
                         className={`${styles.jumpSwatch} ${styles.jumpCellViewed}`}
                       />{" "}
-                      Viewed
+                      Answered
                     </span>
                     <span>
                       <span
@@ -318,7 +320,7 @@ export default function HomeworkPanel({
         {/* Phones / tablets: viewed progress as a bar under the toolbar */}
         <div className={styles.hwProgress} aria-hidden="true">
           <span>
-            Viewed {viewedCount} of {questions.length}
+            Answered {viewedCount} of {questions.length}
           </span>
           <span className={styles.hwProgressBar}>
             <span
@@ -341,7 +343,7 @@ export default function HomeworkPanel({
               correctNumber={isRevealed ? current.correctNumber : undefined}
               onSelect={(n) => {
                 setAnswers((prev) => ({ ...prev, [current.qid]: n }));
-                setRevealed((prev) => new Set(prev).add(current.qid));
+                reveal(current);
               }}
               disabled={isRevealed}
               headerAction={
@@ -392,9 +394,7 @@ export default function HomeworkPanel({
                 <button
                   type="button"
                   className={styles.btnGhost}
-                  onClick={() =>
-                    setRevealed((prev) => new Set(prev).add(current.qid))
-                  }
+                  onClick={() => reveal(current)}
                 >
                   <i className="bi bi-eye" aria-hidden="true" /> Show answer
                 </button>
@@ -449,7 +449,7 @@ export default function HomeworkPanel({
               }`}
               onClick={() => go(i)}
               aria-label={`Question ${q.serial || i + 1}${bookmarked.has(q.qid) ? ", bookmarked" : ""}${
-                viewed.has(q.qid) ? ", viewed" : ""
+                viewed.has(q.qid) ? ", answered" : ""
               }`}
               aria-current={i === position ? "true" : undefined}
             >
@@ -469,7 +469,7 @@ export default function HomeworkPanel({
               className={styles.legendSwatch}
               style={{ background: "#002341", borderColor: "#002341" }}
             />
-            Viewed
+            Answered
           </span>
           <span>
             <span
