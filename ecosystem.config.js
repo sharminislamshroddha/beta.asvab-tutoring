@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: "asvab-tutoring-beta",
-      script: ".next/standalone/server.js",
+      script: ".beta-runtime/server.js",
       cwd: "/home/master/applications/nwnmfyndne/public_html",
       interpreter: "node",
       env: {

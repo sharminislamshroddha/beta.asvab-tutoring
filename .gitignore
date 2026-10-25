@@ -71,3 +71,6 @@ scripts
 # Server API docs only
 artifacts
 docs
+
+# Running copy of the build (deploy-no-npm-isntall.sh)
+.beta-runtime*
