@@ -2,7 +2,11 @@ import type { AsvabScoreReport as AsvabScoreReportData } from "@/lib/study-types
 import styles from "./asvabScoreReport.module.css";
 
 /** Full ASVAB prediction test result in the official "ASVAB SCORE REPORT" layout. */
-export default function AsvabScoreReport({ report }: { report: AsvabScoreReportData }) {
+export default function AsvabScoreReport({
+  report,
+}: {
+  report: AsvabScoreReportData;
+}) {
   return (
     <section className={styles.report} aria-labelledby="asvab-report-title">
       <h2 id="asvab-report-title" className={styles.title}>
@@ -27,7 +31,10 @@ export default function AsvabScoreReport({ report }: { report: AsvabScoreReportD
           Standard Scores:
         </div>
         <div className={styles.standardScroll}>
-          <table className={styles.standardTable} aria-labelledby="asvab-standard-label">
+          <table
+            className={styles.standardTable}
+            aria-labelledby="asvab-standard-label"
+          >
             <thead>
               <tr>
                 {report.standardScores.map((s) => (
@@ -45,6 +52,15 @@ export default function AsvabScoreReport({ report }: { report: AsvabScoreReportD
               </tr>
             </tbody>
           </table>
+          {/* Phones: the same scores as a grid instead of one long row */}
+          <dl className={styles.standardGrid} aria-hidden="true">
+            {report.standardScores.map((s) => (
+              <div key={s.code}>
+                <dt>{s.code}</dt>
+                <dd>{s.score}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
       </div>
 
@@ -53,7 +69,10 @@ export default function AsvabScoreReport({ report }: { report: AsvabScoreReportD
       <h3 className={styles.compositeTitle} id="asvab-composite-label">
         Composite Scores:
       </h3>
-      <table className={styles.compositeTable} aria-labelledby="asvab-composite-label">
+      <table
+        className={styles.compositeTable}
+        aria-labelledby="asvab-composite-label"
+      >
         <tbody>
           {report.composites.map((c) => (
             <tr key={c.branch}>

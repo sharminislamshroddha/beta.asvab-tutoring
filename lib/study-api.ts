@@ -5,6 +5,7 @@ import { getSession } from "@/lib/auth-session";
 import { parsePhpJsonText } from "@/lib/php-json";
 import {
   asRecord,
+  normalizeAttemptHistory,
   normalizeCategoryProgress,
   normalizeFlashcards,
   normalizeLessonList,
@@ -16,6 +17,8 @@ import {
   normalizeReviewQuestions,
   num,
   str,
+  type AttemptHistory,
+  type StudyAccount,
   type Flashcard,
   type LessonProgress,
   type PracticeReport,
@@ -35,6 +38,13 @@ import {
 export const STUDY_ACTIONS = new Set([
   "student-dashboard",
   "student-category-progress",
+  "student-attempt-history",
+  "student-account",
+  "student-cities",
+  "student-profile-update",
+  "student-password-change",
+  "student-subscription-cancel",
+  "student-subscription-resume",
   "student-lesson-study",
   "student-homework-state",
   "student-homework-bookmark",
@@ -277,6 +287,14 @@ export async function getStudyPredictionReview(
     }),
     normalizePredictionReview,
   );
+}
+
+export async function getStudyAccount(): Promise<StudyResult<StudyAccount>> {
+  return mapResult(await callStudyAction("student-account"), (json) => asRecord(json.data) as unknown as StudyAccount);
+}
+
+export async function getStudyAttemptHistory(): Promise<StudyResult<AttemptHistory>> {
+  return mapResult(await callStudyAction("student-attempt-history"), normalizeAttemptHistory);
 }
 
 export async function getStudyProgressReport(): Promise<StudyResult<ProgressReport>> {

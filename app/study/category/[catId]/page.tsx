@@ -44,7 +44,7 @@ export default async function StudyCategoryPage({ params }: { params: Promise<{ 
     <>
       <StudyPageHeader
         title={title}
-        subtitle={`${items.length} ${items.length === 1 ? "lesson" : "lessons"} · study, homework and a practice test in each`}
+        subtitle={`${items.length} ${items.length === 1 ? "lesson" : "lessons"}`}
         crumbs={crumbs}
       />
 

@@ -11,7 +11,6 @@ import {
   FaCaretRight,
   FaSignInAlt,
   FaUserPlus,
-  FaSignOutAlt,
   FaBookOpen,
 } from "react-icons/fa";
 import { useState, useEffect, useRef } from "react";
@@ -21,7 +20,7 @@ import {
 } from "@/lib/package-utils";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { STUDY_PORTAL_HREF } from "@/lib/portal-login";
-import type { AuthUser } from "@/lib/auth-session";
+import UserMenu from "@/components/navbar/UserMenu";
 
 type Course = {
   course_id: string;
@@ -33,46 +32,6 @@ type Service = {
   service_id: string;
   course_name: string;
 };
-
-function firstInitial(value: string): string {
-  const match = value.trim().match(/[\p{L}\p{N}]/u);
-  return match ? match[0].toUpperCase() : "";
-}
-
-function userInitials(user: AuthUser): string {
-  const first = firstInitial(user.first_name);
-  const last = firstInitial(user.last_name);
-  if (first && last) return `${first}${last}`;
-  if (first) {
-    const parts = user.first_name.trim().split(/\s+/).filter(Boolean);
-    if (parts.length >= 2) {
-      const second = firstInitial(parts[parts.length - 1]);
-      if (second) return `${first}${second}`;
-    }
-    return user.first_name.trim().slice(0, 2).toUpperCase() || first;
-  }
-  if (last) return user.last_name.trim().slice(0, 2).toUpperCase() || last;
-  const local = user.email.split("@")[0] || "";
-  return local.slice(0, 2).toUpperCase() || "?";
-}
-
-function userFullName(user: AuthUser): string {
-  return `${user.first_name} ${user.last_name}`.trim() || user.email || "Account";
-}
-
-function NavbarUserAvatar({ user }: { user: AuthUser }) {
-  const fullName = userFullName(user);
-  return (
-    <span
-      className="navbar-user-avatar"
-      title={fullName}
-      aria-label={fullName}
-      role="img"
-    >
-      {userInitials(user)}
-    </span>
-  );
-}
 
 function CourseNavGroups({
   courses,
@@ -101,7 +60,9 @@ function CourseNavGroups({
       className={`navbar-course-item ${variant === "mobile" ? "nav-item" : ""}`}
     >
       <Link
-        className={variant === "desktop" ? "dropdown-item" : "nav-link text-white"}
+        className={
+          variant === "desktop" ? "dropdown-item" : "nav-link text-white"
+        }
         href={hrefFor(course)}
         onClick={onLinkClick}
       >
@@ -229,7 +190,10 @@ function FreeTestsNavGroups({
           onClick={onLinkClick}
         >
           <span>{label}</span>
-          <FaCaretRight className="navbar-free-tests-submenu-caret" aria-hidden />
+          <FaCaretRight
+            className="navbar-free-tests-submenu-caret"
+            aria-hidden
+          />
         </Link>
         <ul
           className={`dropdown-menu navbar-free-tests-submenu-menu ${isOpen ? "show" : ""}`}
@@ -528,7 +492,9 @@ export default function Navbar({
     return () => {
       cancelAnimationFrame(rafId);
       window.removeEventListener("resize", updateMenuOffset);
-      document.documentElement.style.removeProperty("--navbar-mobile-header-offset");
+      document.documentElement.style.removeProperty(
+        "--navbar-mobile-header-offset",
+      );
     };
   }, [isMenuOpen]);
 
@@ -669,18 +635,27 @@ export default function Navbar({
               />
             </Link>
 
-            <button
-              className="navbar-toggler border-0"
-              type="button"
-              onClick={toggleMenu}
-              aria-expanded={isMenuOpen}
-              aria-controls="navbar-mobile-menu"
-            >
-              <FaBars
-                size={26}
-                className={isMenuOpen ? "primary-color-custom" : "text-white"}
-              />
-            </button>
+            <div className="d-flex align-items-center gap-2">
+              {authUser && (
+                <UserMenu
+                  user={authUser}
+                  onLogout={handleLogout}
+                  loggingOut={loggingOut}
+                />
+              )}
+              <button
+                className="navbar-toggler border-0"
+                type="button"
+                onClick={toggleMenu}
+                aria-expanded={isMenuOpen}
+                aria-controls="navbar-mobile-menu"
+              >
+                <FaBars
+                  size={26}
+                  className={isMenuOpen ? "primary-color-custom" : "text-white"}
+                />
+              </button>
+            </div>
           </div>
 
           {/* DESKTOP MENU */}
@@ -878,18 +853,12 @@ export default function Navbar({
                       <FaBookOpen /> Study
                     </a>
                   </li>
-                  <li className="nav-item">
-                    <button
-                      type="button"
-                      className="btn btn-outline-light d-flex align-items-center gap-2 px-3"
-                      onClick={handleLogout}
-                      disabled={loggingOut}
-                    >
-                      <FaSignOutAlt /> {loggingOut ? "…" : "Log out"}
-                    </button>
-                  </li>
                   <li className="nav-item d-flex align-items-center">
-                    <NavbarUserAvatar user={authUser} />
+                    <UserMenu
+                      user={authUser}
+                      onLogout={handleLogout}
+                      loggingOut={loggingOut}
+                    />
                   </li>
                 </>
               ) : (
@@ -1074,7 +1043,11 @@ export default function Navbar({
               </ul>
             </li>
             <li className="nav-item">
-              <Link href="/blog" className="nav-link text-white px-2" onClick={handleLinkClick}>
+              <Link
+                href="/blog"
+                className="nav-link text-white px-2"
+                onClick={handleLinkClick}
+              >
                 BLOG
               </Link>
             </li>
@@ -1089,19 +1062,6 @@ export default function Navbar({
                   >
                     <FaBookOpen /> Study
                   </a>
-                </li>
-                <li className="nav-item">
-                  <button
-                    type="button"
-                    className="nav-link text-white btn btn-link text-start p-0"
-                    onClick={handleLogout}
-                    disabled={loggingOut}
-                  >
-                    <FaSignOutAlt /> {loggingOut ? "…" : "Log out"}
-                  </button>
-                </li>
-                <li className="nav-item d-flex align-items-center py-2">
-                  <NavbarUserAvatar user={authUser} />
                 </li>
               </>
             ) : (

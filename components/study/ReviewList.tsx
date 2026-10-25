@@ -16,7 +16,11 @@ const FILTERS: { id: Filter; label: string }[] = [
 ];
 
 /** Answer review after a test (same correct / wrong filters as the web portal). */
-export default function ReviewList({ questions }: { questions: ReviewQuestion[] }) {
+export default function ReviewList({
+  questions,
+}: {
+  questions: ReviewQuestion[];
+}) {
   const [filter, setFilter] = useState<Filter>("all");
   const ref = useRef<HTMLDivElement>(null);
   useMathTypeset(ref, [filter, questions]);
@@ -30,7 +34,8 @@ export default function ReviewList({ questions }: { questions: ReviewQuestion[] 
     }),
     [questions],
   );
-  const shown = filter === "all" ? questions : questions.filter((q) => q.status === filter);
+  const shown =
+    filter === "all" ? questions : questions.filter((q) => q.status === filter);
 
   if (questions.length === 0) {
     return (
@@ -45,7 +50,11 @@ export default function ReviewList({ questions }: { questions: ReviewQuestion[] 
 
   return (
     <div ref={ref}>
-      <div className={styles.filterBar} role="group" aria-label="Filter questions">
+      <div
+        className={styles.filterBar}
+        role="group"
+        aria-label="Filter questions"
+      >
         {FILTERS.filter((f) => f.id === "all" || counts[f.id] > 0).map((f) => (
           <button
             key={f.id}
@@ -64,20 +73,41 @@ export default function ReviewList({ questions }: { questions: ReviewQuestion[] 
         lastSection = q.section || lastSection;
         return (
           <div key={`${q.serial}-${i}`}>
-            {showSection && <h3 className={`${styles.sectionTitle} mt-2`}>{q.section}</h3>}
-            <article className={`${styles.card} mb-3`} aria-label={`Question ${q.serial || i + 1}`}>
+            {showSection && (
+              <h3 className={`${styles.sectionTitle} mt-2`}>{q.section}</h3>
+            )}
+            <article
+              className={`${styles.card} mb-3`}
+              aria-label={`Question ${q.serial || i + 1}`}
+            >
               <div className="d-flex justify-content-end mb-1">
                 <span
                   className={`${styles.badge} ${
-                    q.status === "correct" ? styles.badgeFree : q.status === "wrong" ? styles.badgeScore : styles.badgeLocked
+                    q.status === "correct"
+                      ? styles.badgeFree
+                      : q.status === "wrong"
+                        ? styles.badgeScore
+                        : styles.badgeLocked
                   }`}
-                  style={q.status === "wrong" ? { background: "var(--study-red-soft)", color: "var(--study-red)" } : undefined}
+                  style={
+                    q.status === "wrong"
+                      ? {
+                          background: "var(--study-red-soft)",
+                          color: "var(--study-red)",
+                        }
+                      : undefined
+                  }
                 >
-                  {q.status === "correct" ? "Correct" : q.status === "wrong" ? "Wrong" : "Not answered"}
+                  {q.status === "correct"
+                    ? "Correct"
+                    : q.status === "wrong"
+                      ? "Wrong"
+                      : "Not answered"}
                 </span>
               </div>
               <QuestionView
                 number={q.serial || i + 1}
+                qid={q.qid}
                 story={q.story}
                 question={q.question}
                 options={q.options}

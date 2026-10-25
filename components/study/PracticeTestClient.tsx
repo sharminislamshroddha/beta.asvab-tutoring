@@ -12,7 +12,6 @@ import {
   type StudyErrorCode,
   type TestQuestion,
 } from "@/lib/study-types";
-import ReportIssueButton from "./ReportIssueButton";
 import styles from "./study.module.css";
 import { StudyNotice } from "./StudyUi";
 import TestRunner from "./TestRunner";
@@ -20,11 +19,9 @@ import TestRunner from "./TestRunner";
 export default function PracticeTestClient({
   catId,
   lessonId,
-  lessonName,
 }: {
   catId: number;
   lessonId: number;
-  lessonName: string;
 }) {
   const router = useRouter();
   const [test, setTest] = useState<PracticeTest | null>(null);
@@ -107,6 +104,7 @@ export default function PracticeTestClient({
       onSubmit={() => void onSubmit()}
       submitting={submitting}
       submitLabel="Submit test"
+      showAll
       header={
         <>
           {test.answeredCount > 0 && (
@@ -122,13 +120,6 @@ export default function PracticeTestClient({
           )}
         </>
       }
-      footerExtra={(q) => (
-        <ReportIssueButton
-          catId={catId}
-          lessonId={lessonId}
-          context={`Practice test - ${lessonName} - question ${test.questions.indexOf(q) + 1}`}
-        />
-      )}
     />
   );
 }

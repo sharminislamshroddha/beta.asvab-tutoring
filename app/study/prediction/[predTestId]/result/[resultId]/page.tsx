@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import AsvabScoreReport from "@/components/study/AsvabScoreReport";
+import PredictionSectionTable from "@/components/study/PredictionSectionTable";
 import { Stat, StudyNotice, StudyPageHeader } from "@/components/study/StudyUi";
 import styles from "@/components/study/study.module.css";
 import { getStudyPredictionReport } from "@/lib/study-api";
@@ -92,10 +93,8 @@ export default async function StudyPredictionResultPage({
     date,
     asvab,
   } = report.data;
-  const reviewHref = (card: ScoreCard) =>
-    canReview && card.result_id && card.cat_id
-      ? `/study/prediction/${predTestId}/review/${card.result_id}?cat=${encodeURIComponent(card.cat_id)}`
-      : undefined;
+  // Test categories only: VE, the GT scores and AFQT have no questions of their own
+  const categorySections = sections.filter((card) => card.cat_id && card.total);
 
   return (
     <>
@@ -111,7 +110,10 @@ export default async function StudyPredictionResultPage({
             >
               <i className="bi bi-arrow-repeat" aria-hidden="true" /> Take again
             </Link>
-            <Link href="/study/progress" className={styles.btnGhost}>
+            <Link
+              href={`/study/progress?history=pred-${predTestId}#attempt-history`}
+              className={styles.btnGhost}
+            >
               Progress report
             </Link>
           </>
@@ -121,7 +123,7 @@ export default async function StudyPredictionResultPage({
       {asvab ? (
         <>
           <AsvabScoreReport report={asvab} />
-          {canReview && sections.some((card) => reviewHref(card)) && (
+          {categorySections.length > 0 && (
             <section
               className={styles.section}
               aria-labelledby="asvab-review-title"
@@ -129,20 +131,17 @@ export default async function StudyPredictionResultPage({
               <h2 id="asvab-review-title" className={styles.sectionTitle}>
                 Review your answers
               </h2>
-              <div className="d-flex flex-wrap gap-2">
-                {sections.map((card) => {
-                  const href = reviewHref(card);
-                  return href ? (
-                    <Link
-                      key={card.key}
-                      href={href}
-                      className={styles.btnGhost}
-                    >
-                      {card.label}
-                    </Link>
-                  ) : null;
-                })}
-              </div>
+              <PredictionSectionTable
+                predTestId={predTestId}
+                sections={categorySections}
+                canReview={canReview}
+              />
+              {!canReview && (
+                <p className={`${styles.muted} small mt-2`}>
+                  Subscribe to review every answer with explanations.{" "}
+                  <Link href="/subscribe-again">Subscribe</Link>
+                </p>
+              )}
             </section>
           )}
         </>
@@ -216,15 +215,11 @@ export default async function StudyPredictionResultPage({
               <h2 id="sections-title" className={styles.sectionTitle}>
                 Section scores
               </h2>
-              <div className={styles.grid}>
-                {sections.map((card) => (
-                  <ScoreCardTile
-                    key={card.key}
-                    card={card}
-                    reviewHref={reviewHref(card)}
-                  />
-                ))}
-              </div>
+              <PredictionSectionTable
+                predTestId={predTestId}
+                sections={sections}
+                canReview={canReview}
+              />
               {!canReview && (
                 <p className={`${styles.muted} small mt-2`}>
                   Subscribe to review every answer with explanations.{" "}

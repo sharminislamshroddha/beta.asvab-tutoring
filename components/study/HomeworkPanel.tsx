@@ -2,23 +2,34 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { studyRequest } from "@/lib/study-client";
-import { asRecord, normalizeHomework, type HomeworkQuestion } from "@/lib/study-types";
+import {
+  asRecord,
+  normalizeHomework,
+  type HomeworkQuestion,
+} from "@/lib/study-types";
 import QuestionView, { Explanation } from "./QuestionView";
-import ReportIssueButton from "./ReportIssueButton";
 import styles from "./study.module.css";
 import { useMathTypeset } from "./useMathTypeset";
 
 type Filter = "all" | "bookmarked";
 
 function numberSet(value: unknown): Set<number> {
-  return new Set((Array.isArray(value) ? value : []).map((v) => Number(v)).filter(Boolean));
+  return new Set(
+    (Array.isArray(value) ? value : []).map((v) => Number(v)).filter(Boolean),
+  );
 }
 
 /**
  * Homework = self-check practice: pick an answer to see the correct one and
  * the explanation. Viewed questions and bookmarks are saved like the web portal.
  */
-export default function HomeworkPanel({ catId, lessonId }: { catId: number; lessonId: number }) {
+export default function HomeworkPanel({
+  catId,
+  lessonId,
+}: {
+  catId: number;
+  lessonId: number;
+}) {
   const [questions, setQuestions] = useState<HomeworkQuestion[] | null>(null);
   const [loadError, setLoadError] = useState("");
   const [index, setIndex] = useState(0);
@@ -28,6 +39,9 @@ export default function HomeworkPanel({ catId, lessonId }: { catId: number; less
   const [viewed, setViewed] = useState<Set<number>>(new Set());
   const [filter, setFilter] = useState<Filter>("all");
   const contentRef = useRef<HTMLDivElement>(null);
+  // "Jump to question" grid opened from the pager between Previous and Next
+  const [jumpOpen, setJumpOpen] = useState(false);
+  const jumpRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -56,12 +70,28 @@ export default function HomeworkPanel({ catId, lessonId }: { catId: number; less
   }, [catId, lessonId]);
 
   const visible = useMemo(
-    () => (questions ?? []).filter((q) => filter === "all" || bookmarked.has(q.qid)),
+    () =>
+      (questions ?? []).filter(
+        (q) => filter === "all" || bookmarked.has(q.qid),
+      ),
     [questions, filter, bookmarked],
   );
   const current = visible[Math.min(index, Math.max(visible.length - 1, 0))];
 
   useMathTypeset(contentRef, [current?.qid, revealed]);
+
+  // Jump grid: Escape closes it; the current question gets the focus
+  useEffect(() => {
+    if (!jumpOpen) return;
+    jumpRef.current
+      ?.querySelector<HTMLElement>('[aria-current="true"]')
+      ?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setJumpOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [jumpOpen]);
 
   // Record the view once per question (homework_view)
   useEffect(() => {
@@ -78,7 +108,6 @@ export default function HomeworkPanel({ catId, lessonId }: { catId: number; less
   const go = useCallback(
     (next: number) => {
       setIndex(Math.max(0, Math.min(next, visible.length - 1)));
-      contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     },
     [visible.length],
   );
@@ -112,8 +141,14 @@ export default function HomeworkPanel({ catId, lessonId }: { catId: number; less
   if (questions === null) {
     return (
       <div className={styles.card} aria-busy="true">
-        <div className={styles.skeleton} style={{ height: 22, width: "40%", marginBottom: 16 }} />
-        <div className={styles.skeleton} style={{ height: 60, marginBottom: 12 }} />
+        <div
+          className={styles.skeleton}
+          style={{ height: 22, width: "40%", marginBottom: 16 }}
+        />
+        <div
+          className={styles.skeleton}
+          style={{ height: 60, marginBottom: 12 }}
+        />
         <div className={styles.skeleton} style={{ height: 160 }} />
       </div>
     );
@@ -121,8 +156,12 @@ export default function HomeworkPanel({ catId, lessonId }: { catId: number; less
 
   if (loadError) {
     return (
-      <div className={`${styles.inlineAlert} ${styles.inlineAlertError}`} role="alert">
-        <i className="bi bi-exclamation-triangle" aria-hidden="true" /> {loadError}
+      <div
+        className={`${styles.inlineAlert} ${styles.inlineAlertError}`}
+        role="alert"
+      >
+        <i className="bi bi-exclamation-triangle" aria-hidden="true" />{" "}
+        {loadError}
       </div>
     );
   }
@@ -142,9 +181,17 @@ export default function HomeworkPanel({ catId, lessonId }: { catId: number; less
 
   return (
     <div className={styles.testLayout}>
-      <section className={styles.card} aria-label="Homework question" ref={contentRef}>
-        <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-          <div className={styles.filterBar} style={{ margin: 0 }} role="group" aria-label="Show questions">
+      <section
+        className={styles.card}
+        aria-label="Homework question"
+        ref={contentRef}
+      >
+        <div className={styles.hwToolbar}>
+          <div
+            className={styles.hwFilters}
+            role="group"
+            aria-label="Show questions"
+          >
             <button
               type="button"
               className={`${styles.sectionTab} ${filter === "all" ? styles.sectionTabActive : ""}`}
@@ -154,7 +201,7 @@ export default function HomeworkPanel({ catId, lessonId }: { catId: number; less
                 setIndex(0);
               }}
             >
-              All ({questions.length})
+              All <span className={styles.hwCount}>({questions.length})</span>
             </button>
             <button
               type="button"
@@ -166,11 +213,119 @@ export default function HomeworkPanel({ catId, lessonId }: { catId: number; less
               }}
               disabled={bookmarked.size === 0}
             >
-              <i className="bi bi-bookmark-fill" aria-hidden="true" /> Bookmarked ({bookmarked.size})
+              <i className="bi bi-bookmark-fill" aria-hidden="true" />{" "}
+              <span className={styles.hwFilterLabel}>Bookmarked </span>
+              <span className={styles.hwCount}>({bookmarked.size})</span>
             </button>
           </div>
-          <span className={styles.muted} style={{ fontSize: "0.85rem" }}>
+          <span className={styles.hwViewed}>
             Viewed {viewedCount}/{questions.length}
+          </span>
+          <div className={styles.jumpWrap}>
+            <button
+              type="button"
+              className={`${styles.jumpButton} ${jumpOpen ? styles.jumpButtonOpen : ""}`}
+              onClick={() => setJumpOpen((open) => !open)}
+              aria-expanded={jumpOpen}
+              aria-controls="homework-jump"
+              aria-label={`Question ${position + 1} of ${visible.length}. Jump to a question`}
+            >
+              <i className="bi bi-grid-3x3-gap" aria-hidden="true" />
+              <span>
+                {position + 1} / {visible.length}
+              </span>
+              <i className="bi bi-chevron-up" aria-hidden="true" />
+            </button>
+
+            {jumpOpen && (
+              <>
+                <div
+                  className={styles.jumpBackdrop}
+                  onClick={() => setJumpOpen(false)}
+                  aria-hidden="true"
+                />
+                <div
+                  id="homework-jump"
+                  ref={jumpRef}
+                  className={styles.jumpPanel}
+                  role="dialog"
+                  aria-label="Jump to a question"
+                >
+                  <div className={styles.jumpHead}>
+                    <span className={styles.jumpTitle}>Jump to question</span>
+                    <button
+                      type="button"
+                      className={styles.paletteCloseAlways}
+                      onClick={() => setJumpOpen(false)}
+                      aria-label="Close"
+                    >
+                      <i className="bi bi-x-lg" aria-hidden="true" />
+                    </button>
+                  </div>
+                  <div className={styles.jumpGrid}>
+                    {visible.map((q, i) => (
+                      <button
+                        key={q.qid}
+                        type="button"
+                        className={`${styles.jumpCell} ${viewed.has(q.qid) ? styles.jumpCellViewed : ""} ${
+                          i === position ? styles.jumpCellCurrent : ""
+                        }`}
+                        onClick={() => {
+                          go(i);
+                          setJumpOpen(false);
+                        }}
+                        aria-current={i === position ? "true" : undefined}
+                        aria-label={`Question ${q.serial || i + 1}${viewed.has(q.qid) ? ", viewed" : ""}${
+                          bookmarked.has(q.qid) ? ", bookmarked" : ""
+                        }`}
+                      >
+                        {q.serial || i + 1}
+                        {bookmarked.has(q.qid) && (
+                          <i
+                            className={`bi bi-bookmark-fill ${styles.jumpCellMark}`}
+                            aria-hidden="true"
+                          />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                  <div className={styles.jumpLegend} aria-hidden="true">
+                    <span>
+                      <span
+                        className={`${styles.jumpSwatch} ${styles.jumpCellViewed}`}
+                      />{" "}
+                      Viewed
+                    </span>
+                    <span>
+                      <span
+                        className={`${styles.jumpSwatch} ${styles.jumpCellCurrent}`}
+                      />{" "}
+                      Current
+                    </span>
+                    <span>
+                      <i
+                        className="bi bi-bookmark-fill"
+                        style={{ color: "var(--study-orange)" }}
+                      />{" "}
+                      Bookmarked
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+        {/* Phones / tablets: viewed progress as a bar under the toolbar */}
+        <div className={styles.hwProgress} aria-hidden="true">
+          <span>
+            Viewed {viewedCount} of {questions.length}
+          </span>
+          <span className={styles.hwProgressBar}>
+            <span
+              style={{
+                width: `${Math.round((viewedCount / questions.length) * 100)}%`,
+              }}
+            />
           </span>
         </div>
 
@@ -178,7 +333,7 @@ export default function HomeworkPanel({ catId, lessonId }: { catId: number; less
           <>
             <QuestionView
               number={current.serial || position + 1}
-              total={questions.length}
+              qid={current.qid}
               story={current.story}
               question={current.question}
               options={current.options}
@@ -189,6 +344,29 @@ export default function HomeworkPanel({ catId, lessonId }: { catId: number; less
                 setRevealed((prev) => new Set(prev).add(current.qid));
               }}
               disabled={isRevealed}
+              headerAction={
+                <button
+                  type="button"
+                  className={`${styles.iconToggle} ${bookmarked.has(current.qid) ? styles.iconToggleOn : ""}`}
+                  onClick={() => void toggleBookmark(current)}
+                  aria-pressed={bookmarked.has(current.qid)}
+                  aria-label={
+                    bookmarked.has(current.qid)
+                      ? "Remove bookmark"
+                      : "Bookmark this question"
+                  }
+                  title={
+                    bookmarked.has(current.qid)
+                      ? "Remove bookmark"
+                      : "Bookmark this question"
+                  }
+                >
+                  <i
+                    className={`bi ${bookmarked.has(current.qid) ? "bi-bookmark-fill" : "bi-bookmark"}`}
+                    aria-hidden="true"
+                  />
+                </button>
+              }
             />
 
             {isRevealed ? (
@@ -196,49 +374,53 @@ export default function HomeworkPanel({ catId, lessonId }: { catId: number; less
                 {answers[current.qid] && (
                   <div
                     className={`${styles.inlineAlert} ${
-                      answers[current.qid] === current.correctNumber ? styles.inlineAlertInfo : styles.inlineAlertWarn
+                      answers[current.qid] === current.correctNumber
+                        ? styles.inlineAlertInfo
+                        : styles.inlineAlertWarn
                     } mt-3 mb-0`}
                     role="status"
                   >
-                    {answers[current.qid] === current.correctNumber ? "Correct, nice work!" : "Not quite. Check the explanation."}
+                    {answers[current.qid] === current.correctNumber
+                      ? "Correct, nice work!"
+                      : "Not quite. Check the explanation."}
                   </div>
                 )}
                 <Explanation html={current.explanation} />
               </>
             ) : (
-              <button
-                type="button"
-                className={`${styles.btnGhost} mt-3`}
-                onClick={() => setRevealed((prev) => new Set(prev).add(current.qid))}
-              >
-                <i className="bi bi-eye" aria-hidden="true" /> Show answer
-              </button>
-            )}
-
-            <div className={styles.questionFooter}>
-              <div className="d-flex flex-wrap gap-2">
+              <div className="text-center mt-3">
                 <button
                   type="button"
                   className={styles.btnGhost}
-                  onClick={() => void toggleBookmark(current)}
-                  aria-pressed={bookmarked.has(current.qid)}
+                  onClick={() =>
+                    setRevealed((prev) => new Set(prev).add(current.qid))
+                  }
                 >
-                  <i className={`bi ${bookmarked.has(current.qid) ? "bi-bookmark-fill" : "bi-bookmark"}`} aria-hidden="true" />
-                  {bookmarked.has(current.qid) ? "Bookmarked" : "Bookmark"}
+                  <i className="bi bi-eye" aria-hidden="true" /> Show answer
                 </button>
-                <ReportIssueButton catId={catId} lessonId={lessonId} context={`Homework question ${current.serial}`} />
               </div>
-              <div className="d-flex gap-2">
-                <button type="button" className={styles.btnGhost} onClick={() => go(position - 1)} disabled={position === 0}>
-                  <i className="bi bi-arrow-left" aria-hidden="true" /> Previous
+            )}
+
+            <div className={styles.questionFooter}>
+              <div className={styles.questionNav}>
+                <button
+                  type="button"
+                  className={styles.btnGhost}
+                  onClick={() => go(position - 1)}
+                  disabled={position === 0}
+                >
+                  <i className="bi bi-arrow-left" aria-hidden="true" />{" "}
+                  <span className={styles.navText}>Previous</span>
                 </button>
+
                 <button
                   type="button"
                   className={styles.btnSecondary}
                   onClick={() => go(position + 1)}
                   disabled={position >= visible.length - 1}
                 >
-                  Next <i className="bi bi-arrow-right" aria-hidden="true" />
+                  <span className={styles.navText}>Next</span>{" "}
+                  <i className="bi bi-arrow-right" aria-hidden="true" />
                 </button>
               </div>
             </div>
@@ -248,7 +430,12 @@ export default function HomeworkPanel({ catId, lessonId }: { catId: number; less
         )}
       </section>
 
-      <aside className={styles.card} aria-label="Question list">
+      {/* Desktop (1200px+): question list beside the question. Smaller
+          screens use the "3 / 21" jump menu in the pager instead. */}
+      <aside
+        className={`${styles.card} ${styles.homeworkSide}`}
+        aria-label="Question list"
+      >
         <h2 className={styles.cardTitle} style={{ fontSize: "0.95rem" }}>
           Questions
         </h2>
@@ -267,18 +454,37 @@ export default function HomeworkPanel({ catId, lessonId }: { catId: number; less
               aria-current={i === position ? "true" : undefined}
             >
               {q.serial || i + 1}
-              {bookmarked.has(q.qid) && <span className={styles.srOnly}> bookmarked</span>}
+              {bookmarked.has(q.qid) && (
+                <i
+                  className={`bi bi-bookmark-fill ${styles.jumpCellMark}`}
+                  aria-hidden="true"
+                />
+              )}
             </button>
           ))}
         </div>
         <div className={styles.legend}>
           <span>
-            <span className={styles.legendSwatch} style={{ background: "#002341", borderColor: "#002341" }} />
+            <span
+              className={styles.legendSwatch}
+              style={{ background: "#002341", borderColor: "#002341" }}
+            />
             Viewed
           </span>
           <span>
-            <span className={styles.legendSwatch} style={{ borderColor: "#e58a34" }} />
+            <span
+              className={styles.legendSwatch}
+              style={{ borderColor: "#e58a34" }}
+            />
             Current
+          </span>
+          <span>
+            <i
+              className="bi bi-bookmark-fill"
+              style={{ color: "var(--study-orange)" }}
+              aria-hidden="true"
+            />
+            Bookmarked
           </span>
         </div>
       </aside>

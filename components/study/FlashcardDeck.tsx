@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import QuestionHtml from "@/components/free-test/QuestionHtml";
+import { QuestionNumber } from "./QuestionView";
 import type { Flashcard } from "@/lib/study-types";
 import styles from "./study.module.css";
 import { useMathTypeset } from "./useMathTypeset";
@@ -19,7 +20,11 @@ function shuffle<T>(list: T[]): T[] {
  * Flashcards like the web portal: the card shows the question and
  * "See answer" reveals the explanation below it.
  */
-export default function FlashcardDeck({ cards: initial }: { cards: Flashcard[] }) {
+export default function FlashcardDeck({
+  cards: initial,
+}: {
+  cards: Flashcard[];
+}) {
   const [cards, setCards] = useState(initial);
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
@@ -52,7 +57,11 @@ export default function FlashcardDeck({ cards: initial }: { cards: Flashcard[] }
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
-      if (target && ["INPUT", "TEXTAREA", "SELECT", "BUTTON", "A"].includes(target.tagName)) return;
+      if (
+        target &&
+        ["INPUT", "TEXTAREA", "SELECT", "BUTTON", "A"].includes(target.tagName)
+      )
+        return;
       if (e.key === "ArrowRight") go(index + 1);
       else if (e.key === "ArrowLeft") go(index - 1);
       else if (e.key === " " || e.key === "Enter") {
@@ -86,7 +95,10 @@ export default function FlashcardDeck({ cards: initial }: { cards: Flashcard[] }
             aria-valuemax={cards.length}
             aria-label="Card position"
           >
-            <div className={styles.progressFill} style={{ width: `${percent}%` }} />
+            <div
+              className={styles.progressFill}
+              style={{ width: `${percent}%` }}
+            />
           </div>
         </div>
         <button
@@ -102,8 +114,12 @@ export default function FlashcardDeck({ cards: initial }: { cards: Flashcard[] }
         </button>
       </div>
 
-      <article className={`${styles.card} ${styles.flashcardCard}`} ref={cardRef} aria-label={`Flashcard ${index + 1}`}>
-        <div className={styles.questionNumber}>Card {index + 1}</div>
+      <article
+        className={`${styles.card} ${styles.flashcardCard}`}
+        ref={cardRef}
+        aria-label={`Flashcard ${index + 1}`}
+      >
+        <QuestionNumber text={`Card ${index + 1}`} qid={card.id} />
         <div className={styles.flashcardFront}>
           <QuestionHtml key={`q-${card.id}`} html={card.front} />
         </div>
@@ -116,7 +132,10 @@ export default function FlashcardDeck({ cards: initial }: { cards: Flashcard[] }
             aria-expanded={revealed}
             aria-controls="flashcard-answer"
           >
-            <i className={`bi ${revealed ? "bi-eye-slash" : "bi-eye"}`} aria-hidden="true" />
+            <i
+              className={`bi ${revealed ? "bi-eye-slash" : "bi-eye"}`}
+              aria-hidden="true"
+            />
             {revealed ? "Hide answer" : "See answer"}
           </button>
         </div>
@@ -141,10 +160,20 @@ export default function FlashcardDeck({ cards: initial }: { cards: Flashcard[] }
       </article>
 
       <div className="d-flex justify-content-between gap-2 mt-3">
-        <button type="button" className={styles.btnGhost} onClick={() => go(index - 1)} disabled={cards.length < 2}>
+        <button
+          type="button"
+          className={styles.btnGhost}
+          onClick={() => go(index - 1)}
+          disabled={cards.length < 2}
+        >
           <i className="bi bi-arrow-left" aria-hidden="true" /> Previous
         </button>
-        <button type="button" className={styles.btnSecondary} onClick={() => go(index + 1)} disabled={cards.length < 2}>
+        <button
+          type="button"
+          className={styles.btnSecondary}
+          onClick={() => go(index + 1)}
+          disabled={cards.length < 2}
+        >
           Next <i className="bi bi-arrow-right" aria-hidden="true" />
         </button>
       </div>

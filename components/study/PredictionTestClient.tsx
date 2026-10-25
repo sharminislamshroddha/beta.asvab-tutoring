@@ -17,11 +17,18 @@ import TestRunner from "./TestRunner";
 
 type LoadOptions = { catId?: string; fresh?: boolean };
 
-export default function PredictionTestClient({ predTestId }: { predTestId: number }) {
+export default function PredictionTestClient({
+  predTestId,
+}: {
+  predTestId: number;
+}) {
   const router = useRouter();
   const [test, setTest] = useState<PredictionTest | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<{ code: StudyErrorCode; message: string } | null>(null);
+  const [error, setError] = useState<{
+    code: StudyErrorCode;
+    message: string;
+  } | null>(null);
   const [resumePrompt, setResumePrompt] = useState(false);
   const [started, setStarted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -30,7 +37,9 @@ export default function PredictionTestClient({ predTestId }: { predTestId: numbe
   const load = useCallback(
     async ({ catId, fresh }: LoadOptions = {}) => {
       setLoading(true);
-      const params: Record<string, string | number> = { pred_test_id: predTestId };
+      const params: Record<string, string | number> = {
+        pred_test_id: predTestId,
+      };
       if (catId) params.cat_id = catId;
       if (fresh) params.test_type = "freshtest";
       const result = await studyRequest("student-prediction-questions", params);
@@ -76,7 +85,9 @@ export default function PredictionTestClient({ predTestId }: { predTestId: numbe
             ? {
                 ...prev,
                 sections: prev.sections.map((s) =>
-                  s.cat_id === prev.cat_id ? { ...s, completed: Math.min(s.total, s.completed + 1) } : s,
+                  s.cat_id === prev.cat_id
+                    ? { ...s, completed: Math.min(s.total, s.completed + 1) }
+                    : s,
                 ),
               }
             : prev,
@@ -90,14 +101,20 @@ export default function PredictionTestClient({ predTestId }: { predTestId: numbe
   const onSubmit = useCallback(async () => {
     setSubmitting(true);
     setSubmitError("");
-    const result = await studyRequest("student-prediction-submit", { pred_test_id: predTestId });
+    const result = await studyRequest("student-prediction-submit", {
+      pred_test_id: predTestId,
+    });
     if (!result.ok) {
       setSubmitting(false);
       setSubmitError(result.message);
       return;
     }
     const resultId = num(result.data.result_id);
-    router.replace(resultId ? `/study/prediction/${predTestId}/result/${resultId}` : "/study/prediction");
+    router.replace(
+      resultId
+        ? `/study/prediction/${predTestId}/result/${resultId}`
+        : "/study/prediction",
+    );
   }, [predTestId, router]);
 
   if (error) {
@@ -123,11 +140,12 @@ export default function PredictionTestClient({ predTestId }: { predTestId: numbe
     return (
       <section className={styles.card} aria-labelledby="resume-title">
         <h2 id="resume-title" className={styles.cardTitle}>
-          <i className="bi bi-arrow-repeat" aria-hidden="true" /> Test in progress
+          <i className="bi bi-arrow-repeat" aria-hidden="true" /> Test in
+          progress
         </h2>
         <p>
-          You have already answered {test.completedTotal} of {test.total} questions. Do you want to
-          continue or start a new test?
+          You have already answered {test.completedTotal} of {test.total}{" "}
+          questions. Do you want to continue or start a new test?
         </p>
         <div className="d-flex flex-wrap gap-2">
           <button
@@ -165,14 +183,19 @@ export default function PredictionTestClient({ predTestId }: { predTestId: numbe
     .reduce((sum, s) => sum + Math.max(0, s.total - s.completed), 0);
   // Next section that still has open questions: after this one first, then earlier skipped ones
   const sectionIndex = test.sections.findIndex((s) => s.cat_id === test.cat_id);
-  const isOpen = (s: (typeof test.sections)[number]) => s.cat_id !== test.cat_id && s.completed < s.total;
+  const isOpen = (s: (typeof test.sections)[number]) =>
+    s.cat_id !== test.cat_id && s.completed < s.total;
   const nextSection =
-    test.sections.slice(sectionIndex + 1).find(isOpen) ?? test.sections.slice(0, Math.max(sectionIndex, 0)).find(isOpen);
+    test.sections.slice(sectionIndex + 1).find(isOpen) ??
+    test.sections.slice(0, Math.max(sectionIndex, 0)).find(isOpen);
 
   const sectionTabs = (
     <>
       {submitError && (
-        <div className={`${styles.inlineAlert} ${styles.inlineAlertError}`} role="alert">
+        <div
+          className={`${styles.inlineAlert} ${styles.inlineAlertError}`}
+          role="alert"
+        >
           {submitError}
         </div>
       )}
@@ -192,29 +215,28 @@ export default function PredictionTestClient({ predTestId }: { predTestId: numbe
                 disabled={loading}
                 title={s.name}
               >
-                {done && <i className="bi bi-check-circle-fill me-1" aria-hidden="true" />}
-                {s.shortcode} ({s.completed}/{s.total})
+                {done && (
+                  <i
+                    className="bi bi-check-circle-fill me-1"
+                    aria-hidden="true"
+                  />
+                )}
+                {s.shortcode}{" "}
+                <span className={styles.sectionTabCount}>
+                  ({s.completed}/{s.total})
+                </span>
               </button>
             );
           })}
         </nav>
       )}
       <p className={`${styles.muted} mb-3`}>
-        <strong style={{ color: "var(--study-navy)" }}>{test.category_name || currentSection?.name}</strong>
-        {currentSection ? ` · answer ${currentSection.total} questions to get your ${currentSection.name} score.` : ""}
-        {nextSection && (
-          <>
-            {" "}
-            <button
-              type="button"
-              className="btn btn-link p-0 align-baseline"
-              onClick={() => void switchSection(nextSection.cat_id)}
-              disabled={loading}
-            >
-              Next section: {nextSection.name} →
-            </button>
-          </>
-        )}
+        <strong style={{ color: "var(--study-navy)" }}>
+          {test.category_name || currentSection?.name}
+        </strong>
+        {currentSection
+          ? ` · answer ${currentSection.total} questions to get your ${currentSection.name} score.`
+          : ""}
       </p>
     </>
   );
@@ -239,11 +261,18 @@ export default function PredictionTestClient({ predTestId }: { predTestId: numbe
       onSubmit={() => void onSubmit()}
       submitting={submitting}
       submitLabel="Submit test"
+      showAll
       header={sectionTabs}
-      unansweredOverall={(answeredHere) => otherSectionsOpen + Math.max(0, test.questions.length - answeredHere)}
+      unansweredOverall={(answeredHere) =>
+        otherSectionsOpen + Math.max(0, test.questions.length - answeredHere)
+      }
       nextSection={
         nextSection
-          ? { label: `Next section: ${nextSection.shortcode}`, onGo: () => void switchSection(nextSection.cat_id) }
+          ? {
+              label: `Next section: ${nextSection.shortcode}`,
+              shortLabel: `Next: ${nextSection.shortcode}`,
+              onGo: () => void switchSection(nextSection.cat_id),
+            }
           : undefined
       }
     />

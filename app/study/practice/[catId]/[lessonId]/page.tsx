@@ -30,7 +30,7 @@ export default async function StudyPracticePage({
     <>
       <StudyPageHeader title={`${lessonName}: Practice Test`} crumbs={crumbs} />
       {overview.ok ? (
-        <PracticeTestClient catId={catId} lessonId={lessonId} lessonName={lessonName} />
+        <PracticeTestClient catId={catId} lessonId={lessonId} />
       ) : (
         <StudyNotice code={overview.code} message={overview.message} />
       )}

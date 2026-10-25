@@ -37,12 +37,50 @@ export type StudyCategory = {
   lessons?: StudySidebarLesson[];
 };
 
+export type StudyPredictionSection = {
+  cat_id: number;
+  name: string;
+  shortcode: string;
+  questions: number;
+  minutes: number;
+};
+
 export type StudyPredictionTest = {
   pred_test_id: number;
   name: string;
   shortcode: string;
   is_free: boolean;
+  sections?: StudyPredictionSection[];
 };
+
+/** A test started but not submitted yet (student-dashboard open_tests) */
+export type StudyOpenTest =
+  | {
+      type: "practice";
+      cat_id: number;
+      cat_name: string;
+      lesson_id: number;
+      name: string;
+      answered: number;
+      total: number;
+      date: string;
+    }
+  | {
+      type: "prediction";
+      pred_test_id: number;
+      name: string;
+      answered: number;
+      total: number;
+      date: string;
+    };
+
+/** Cookie naming the test the student last answered a question in */
+export const STUDY_LAST_TEST_COOKIE = "asvab_study_last_test";
+
+/** Cookie value for an open test: "practice:<lesson_id>" or "prediction:<pred_test_id>" */
+export function openTestKey(test: StudyOpenTest): string {
+  return test.type === "practice" ? `practice:${test.lesson_id}` : `prediction:${test.pred_test_id}`;
+}
 
 export type StudyDashboard = {
   user: {
@@ -57,6 +95,7 @@ export type StudyDashboard = {
   overview_video: { desktop_id: string | null; mobile_id: string | null } | null;
   categories: StudyCategory[];
   prediction_tests: StudyPredictionTest[];
+  open_tests?: StudyOpenTest[];
   access: {
     prediction_tests_enabled: boolean;
     final_lessons_enabled: boolean;
@@ -74,6 +113,7 @@ export type StudyLessonListItem = {
 /** Per-lesson progress for the "All lessons" page (student-category-progress). */
 export type LessonProgress = {
   lesson_id: number;
+  study_total: number;
   homework_total: number;
   homework_viewed: number;
   homework_bookmarked: number;
@@ -148,6 +188,8 @@ export type PracticeReport = {
 };
 
 export type ReviewQuestion = {
+  /** question.qid (sent by the review actions) */
+  qid: number;
   serial: number;
   story: string;
   section: string;
@@ -255,6 +297,74 @@ export type ProgressReport = {
   predictions: ProgressPredictionRow[];
 };
 
+/** One submitted test (student-attempt-history), newest first */
+export type PracticeAttempt = {
+  result_id: number;
+  cat_id: number;
+  cat_name: string;
+  cat_shortcode: string;
+  lesson_id: number;
+  lesson_name: string;
+  lesson_order: number;
+  score: number;
+  correct: number;
+  total: number;
+  date: string;
+  can_open: boolean;
+};
+
+export type PredictionAttempt = {
+  result_id: number;
+  pred_test_id: number;
+  name: string;
+  shortcode: string;
+  score: number;
+  correct: number;
+  total: number;
+  date: string;
+  /** False for older attempts whose detailed report the API can't show */
+  can_open: boolean;
+};
+
+export type AttemptHistory = { practice: PracticeAttempt[]; prediction: PredictionAttempt[] };
+
+/** Student account (student-account) */
+export type StudyPlace = { id: number; name: string };
+
+export type StudyAccount = {
+  profile: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    mobile: string;
+    state_id: number;
+    city_id: number;
+    zip_code: string;
+    reg_date: string;
+  };
+  states: StudyPlace[];
+  cities: StudyPlace[];
+  subscription: {
+    course_name: string;
+    is_active: boolean;
+    start_date: string;
+    expire_date: string;
+    payment_mode: string;
+    amount: number;
+    currency: string;
+    from_app: boolean;
+    square: {
+      status: string;
+      start_date: string;
+      next_billing_date: string;
+      cancel_status: string;
+      cancel_effective_date: string;
+      amount: number;
+      currency: string;
+    } | null;
+  };
+};
+
 export type Flashcard = { id: number; front: string; back: string };
 
 /* ------------------------------------------------------------------ */
@@ -329,6 +439,7 @@ export function normalizeCategoryProgress(json: unknown): LessonProgress[] {
       const latest = asRecord(row.latest);
       return {
         lesson_id: num(row.lesson_id),
+        study_total: num(row.study_total),
         homework_total: num(row.homework_total),
         homework_viewed: num(row.homework_viewed),
         homework_bookmarked: num(row.homework_bookmarked),
@@ -440,6 +551,7 @@ function normalizeReviewQuestion(row: Json): ReviewQuestion {
   const correctNumber = parseCorrectAnswer(str(row.correct_answer));
   const myAnswer = num(row.myanswer);
   return {
+    qid: num(row.qid),
     serial: num(row.srno),
     story: str(row.story),
     section: str(row.section_name),
@@ -662,6 +774,43 @@ export function normalizeProgressReport(json: unknown): ProgressReport {
     canReviewPrediction: num(rec.display_pred_test_review) === 1,
     lessons,
     predictions,
+  };
+}
+
+export function normalizeAttemptHistory(json: unknown): AttemptHistory {
+  const data = asRecord(asRecord(json).data);
+  return {
+    practice: toArray(data.practice)
+      .map(asRecord)
+      .map((r) => ({
+        result_id: num(r.result_id),
+        cat_id: num(r.cat_id),
+        cat_name: str(r.cat_name),
+        cat_shortcode: str(r.cat_shortcode),
+        lesson_id: num(r.lesson_id),
+        lesson_name: str(r.lesson_name),
+        lesson_order: num(r.lesson_order),
+        score: num(r.score),
+        correct: num(r.correct),
+        total: num(r.total),
+        date: str(r.date),
+        can_open: r.can_open === true,
+      }))
+      .filter((r) => r.result_id > 0),
+    prediction: toArray(data.prediction)
+      .map(asRecord)
+      .map((r) => ({
+        result_id: num(r.result_id),
+        pred_test_id: num(r.pred_test_id),
+        name: str(r.name),
+        shortcode: str(r.shortcode),
+        score: num(r.score),
+        correct: num(r.correct),
+        total: num(r.total),
+        date: str(r.date),
+        can_open: r.can_open === true,
+      }))
+      .filter((r) => r.result_id > 0),
   };
 }
 
